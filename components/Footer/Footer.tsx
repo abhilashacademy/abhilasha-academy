@@ -84,7 +84,7 @@ export default function Footer() {
             </Link>
             
             <p className="text-sm leading-relaxed text-slate-500">
-              Established in 2010, Abhilasha Academy and Maa Durga Abhilasha Inter College deliver value-based, quality Hindi medium state board education to help nurture confident future leaders.
+              Established in 2010, Abhilasha Academy and Maa Durga Abhilasha Inter College deliver value-based, quality UP & CBSE Board education for Classes Nursery to 12th in Hindi & English Medium to help nurture confident future leaders.
             </p>
             
             {/* Social media icons */}
@@ -113,10 +113,10 @@ export default function Footer() {
             <ul className="flex flex-col gap-3 text-sm">
               {navItems.slice(0, 7).map((item) => {
                 return (
-                  <li key={item.label}>
+                  <li key={item.href}>
                     <Link
                       href={item.href}
-                      className="hover:text-amber-300 hover:pl-1.5 transition-all duration-200 flex items-center gap-2 group text-slate-400 font-medium"
+                      className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 group"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-secondary group-hover:bg-amber-400 group-hover:scale-125 transition-all shrink-0" />
                       <span>{item.label}</span>
@@ -136,15 +136,15 @@ export default function Footer() {
             <ul className="flex flex-col gap-3 text-sm text-slate-500">
               <li>
                 <span className="text-slate-400 font-semibold block">Affiliation:</span>
-                <span>UP Madhyamik Shiksha Parishad (UP Board)</span>
+                <span>UP & CBSE Board</span>
               </li>
               <li>
                 <span className="text-slate-400 font-semibold block">Classes Offered:</span>
-                <span>Classes 6 to 12 (High School & Intermediate)</span>
+                <span>Classes Nursery to 12th</span>
               </li>
               <li>
                 <span className="text-slate-400 font-semibold block">Medium:</span>
-                <span>Hindi Medium</span>
+                <span>Hindi & English Medium</span>
               </li>
             </ul>
           </div>
@@ -220,7 +220,7 @@ export default function Footer() {
           <div className="flex items-center gap-6">
             <Link href="/contact" className="hover:text-white">Inquiry Form</Link>
             <Link href="/admissions" className="hover:text-white">Fee Guidelines</Link>
-            <span>Affiliation Code: UP-Board-Maa-Durga</span>
+            <span>Affiliation Code: 711264</span>
           </div>
         </div>
 

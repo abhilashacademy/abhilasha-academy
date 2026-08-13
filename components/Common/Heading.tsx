@@ -7,6 +7,7 @@ interface HeadingProps {
   center?: boolean;
   className?: string;
   light?: boolean;
+  hideLine?: boolean;
 }
 
 export default function Heading({
@@ -15,6 +16,7 @@ export default function Heading({
   center = false,
   className,
   light = false,
+  hideLine = false,
 }: HeadingProps) {
   return (
     <div
@@ -31,18 +33,21 @@ export default function Heading({
       )}
       <h2
         className={cn(
-          "text-3xl md:text-4xl font-extrabold tracking-tight relative pb-4 inline-block",
+          "text-3xl md:text-4xl font-extrabold tracking-tight relative inline-block",
+          !hideLine && "pb-4",
           light ? "text-white" : "text-primary"
         )}
       >
         {title}
-        <span
-          className={cn(
-            "absolute bottom-0 h-1 w-16 rounded-full",
-            center ? "left-1/2 -translate-x-1/2" : "left-0",
-            "bg-gradient-to-r from-primary to-secondary"
-          )}
-        />
+        {!hideLine && (
+          <span
+            className={cn(
+              "absolute bottom-0 h-1 w-16 rounded-full",
+              center ? "left-1/2 -translate-x-1/2" : "left-0",
+              "bg-gradient-to-r from-primary to-secondary"
+            )}
+          />
+        )}
       </h2>
     </div>
   );

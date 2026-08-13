@@ -44,10 +44,10 @@ export default function ToppersGalleryPage() {
             <button
               key={year}
               onClick={() => setSelectedYear(year)}
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer ${
+              className={`px-6 py-2.5 rounded-full text-sm font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer ${
                 selectedYear === year
                   ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
-                  : "bg-white text-slate-600 hover:text-primary hover:bg-slate-50 border border-slate-200"
+                  : "bg-white text-slate-700 hover:text-primary hover:bg-slate-50 border-2 border-slate-300 shadow-sm hover:border-slate-400"
               }`}
             >
               Academic Year {year}

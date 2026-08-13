@@ -155,6 +155,22 @@ export default function Hero() {
         </motion.div>
       </Container>
 
+      {/* Slider Controls & Navigation Indicators */}
+      <div className="absolute bottom-8 left-0 right-0 z-20 flex flex-col items-center gap-3">
+        {/* Indicator Dots */}
+        <div className="flex items-center gap-2 bg-slate-900/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+          {heroImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIdx(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
+              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                currentIdx === idx ? "w-8 bg-secondary" : "w-2 bg-white/40 hover:bg-white/70"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

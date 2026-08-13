@@ -55,7 +55,7 @@ export default function AboutSection() {
                 </div>
                 <div>
                   <span className="font-bold text-slate-800 text-sm block">UP & CBSE Board</span>
-                  <span className="text-slate-500 text-xs block">Classes Play Group to 12 • English & Hindi Medium</span>
+                  <span className="text-slate-500 text-xs block">Classes Nursery to 12th • English & Hindi Medium</span>
                 </div>
               </div>
             </AnimatedSection>
@@ -72,7 +72,7 @@ export default function AboutSection() {
 
               <div className="text-slate-600 space-y-4 leading-relaxed mb-8">
                 <p>
-                  Established in 2010, <strong>Abhilasha Academy</strong> and <strong>Maa Durga Abhilasha Inter College (Abhilasha Group of Academies)</strong> have been committed to providing quality education that is affordable, value-driven, and accessible to every child. Our institutions strive to nurture students into confident, responsible, and compassionate individuals who are prepared to succeed in academics and life. The inter college offers UP & CBSE Board education for Classes Play Group to 12 in English & Hindi medium.
+                  Established in 2010, <strong>Abhilasha Academy</strong> and <strong>Maa Durga Abhilasha Inter College (Abhilasha Group of Academies)</strong> have been committed to providing quality education that is affordable, value-driven, and accessible to every child. Our institutions strive to nurture students into confident, responsible, and compassionate individuals who are prepared to succeed in academics and life. The inter college offers UP & CBSE Board education for Classes Nursery to 12th in English & Hindi medium.
                 </p>
                 <p>
                   Located in Gaura, Kaptanganj, Basti (Uttar Pradesh), we offer education through two dedicated institutions:
