@@ -1,0 +1,55 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import TopBar from "./TopBar";
+import DesktopNav from "./DesktopNav";
+import MobileNav from "./MobileNav";
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleToggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev);
+  };
+
+  const handleCloseMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  return (
+    <header className="fixed top-0 left-0 right-0 w-full z-45 flex flex-col">
+      {/* Top Bar for contact & socials */}
+      <TopBar />
+
+      {/* Main Navbar */}
+      <DesktopNav
+        onToggleMobileMenu={handleToggleMobileMenu}
+        isMobileMenuOpen={isMobileMenuOpen}
+        isScrolled={isScrolled}
+      />
+
+      {/* Mobile Fullscreen Navigation Menu */}
+      <MobileNav isOpen={isMobileMenuOpen} onClose={handleCloseMobileMenu} />
+    </header>
+  );
+}
