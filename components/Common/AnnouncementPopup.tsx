@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
 
@@ -12,10 +13,16 @@ interface PopupSettings {
 }
 
 export default function AnnouncementPopup() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState<PopupSettings | null>(null);
 
   useEffect(() => {
+    // If on admin routes (/admin), do not fetch or display popup
+    if (pathname?.startsWith("/admin")) {
+      return;
+    }
+
     async function loadPopup() {
       try {
         const res = await fetch("/api/settings");
@@ -24,12 +31,9 @@ export default function AnnouncementPopup() {
           const siteSettings: PopupSettings = data.settings || {};
           setSettings(siteSettings);
 
-          // If popup status is ON (enabled), open popup on site load / refresh
+          // If popup status is ON (enabled), show popup immediately on website load
           if (siteSettings.popupEnabled) {
-            const timer = setTimeout(() => {
-              setIsOpen(true);
-            }, 300);
-            return () => clearTimeout(timer);
+            setIsOpen(true);
           }
         }
       } catch (err) {
@@ -38,13 +42,14 @@ export default function AnnouncementPopup() {
     }
 
     loadPopup();
-  }, []);
+  }, [pathname]);
 
   const handleClose = () => {
     setIsOpen(false);
   };
 
-  if (!settings || !settings.popupEnabled) {
+  // Never render popup on admin panel or if popup is disabled
+  if (pathname?.startsWith("/admin") || !settings || !settings.popupEnabled) {
     return null;
   }
 
@@ -55,7 +60,7 @@ export default function AnnouncementPopup() {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-hidden select-none">
-          {/* Subtle Dark Backdrop (Light blur & soft dark tint) */}
+          {/* Subtle Dark Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
