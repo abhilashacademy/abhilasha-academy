@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { contactDetails, socialLinks } from "@/data/navigation";
 import {
   FaFacebookF,
@@ -29,6 +31,25 @@ const getSocialIcon = (iconName: string) => {
 };
 
 export default function TopBar() {
+  const [bannerTitle, setBannerTitle] = useState("Admissions Open for Session 2026-27");
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.settings?.bannerTitle) {
+            setBannerTitle(data.settings.bannerTitle);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch TopBar settings, using fallback:", err);
+      }
+    }
+    loadSettings();
+  }, []);
+
   return (
     <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-slate-300 border-b border-amber-500/20 py-2 text-xs hidden sm:block relative z-40 select-none">
       <Container className="flex justify-between items-center">
@@ -59,7 +80,7 @@ export default function TopBar() {
         {/* Center Ticker / Badge */}
         <div className="hidden xl:flex items-center gap-2 px-3 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[11px] font-bold tracking-wide shadow-[0_0_10px_rgba(251,191,36,0.15)]">
           <HiSparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-          <span>Admissions Open for Session 2026-27</span>
+          <span>{bannerTitle}</span>
         </div>
 
         {/* Social media icons */}
@@ -81,4 +102,3 @@ export default function TopBar() {
     </div>
   );
 }
-

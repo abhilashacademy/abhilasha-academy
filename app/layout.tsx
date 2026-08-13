@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar/Navbar";
 import Footer from "@/components/Footer/Footer";
 import ScrollProgress from "@/components/Common/ScrollProgress";
 import ScrollToTop from "@/components/Common/ScrollToTop";
+import AnnouncementPopup from "@/components/Common/AnnouncementPopup";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -106,6 +107,9 @@ export default function RootLayout({
 
         {/* Floating Scroll To Top button */}
         <ScrollToTop />
+
+        {/* Dynamic Entrance Announcement Popup */}
+        <AnnouncementPopup />
       </body>
     </html>
   );

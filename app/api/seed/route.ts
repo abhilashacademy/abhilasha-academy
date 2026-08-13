@@ -6,9 +6,12 @@ import User from "@/models/User";
 import Admission from "@/models/Admission";
 import Contact from "@/models/Contact";
 import Resource from "@/models/Resource";
+import Facility from "@/models/Facility";
+import SiteSetting from "@/models/SiteSetting";
 import bcrypt from "bcryptjs";
 import { newsData } from "@/data/news";
 import { galleryData } from "@/data/gallery";
+import { facilitiesData } from "@/data/facilities";
 
 async function runSeed() {
   await connectToDatabase();
@@ -18,6 +21,8 @@ async function runSeed() {
   let admissionsSeededCount = 0;
   let contactsSeededCount = 0;
   let resourcesSeededCount = 0;
+  let facilitiesSeededCount = 0;
+  let settingsSeeded = false;
   let adminSeeded = false;
 
   // Seed Admin User
@@ -168,6 +173,31 @@ async function runSeed() {
   const createdResources = await Resource.insertMany(defaultResources);
   resourcesSeededCount = createdResources.length;
 
+  // Seed Facilities if empty
+  const facilityCount = await Facility.countDocuments();
+  if (facilityCount === 0) {
+    const seedFacilities = facilitiesData.map((fac, idx) => ({
+      title: fac.title,
+      description: fac.description,
+      iconName: fac.iconName,
+      image: fac.image,
+      order: idx,
+    }));
+    const createdFacilities = await Facility.insertMany(seedFacilities);
+    facilitiesSeededCount = createdFacilities.length;
+  }
+
+  // Seed Site Settings
+  let settingDoc = await SiteSetting.findOne({ key: "default_settings" });
+  if (!settingDoc) {
+    await SiteSetting.create({
+      key: "default_settings",
+      bannerTitle: "Admissions Open for Session 2026-27",
+      bannerEnabled: true,
+    });
+    settingsSeeded = true;
+  }
+
   return {
     adminSeeded,
     postsSeededCount,
@@ -175,6 +205,8 @@ async function runSeed() {
     admissionsSeededCount,
     contactsSeededCount,
     resourcesSeededCount,
+    facilitiesSeededCount,
+    settingsSeeded,
   };
 }
 

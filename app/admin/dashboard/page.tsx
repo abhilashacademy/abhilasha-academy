@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaPlus, FaTrash, FaEdit, FaSignOutAlt, FaImage, FaNewspaper,
-  FaDatabase, FaCheck, FaTimes, FaSearch, FaUser, FaExternalLinkAlt, FaBars, FaChartLine, FaCog, FaGraduationCap, FaUpload, FaSpinner, FaEnvelope, FaEye, FaFileDownload, FaFilePdf, FaStar, FaSmile, FaQuoteLeft
+  FaDatabase, FaCheck, FaTimes, FaSearch, FaUser, FaExternalLinkAlt, FaBars, FaChartLine, FaCog, FaGraduationCap, FaUpload, FaSpinner, FaEnvelope, FaEye, FaFileDownload, FaFilePdf, FaStar, FaSmile, FaQuoteLeft, FaBuilding, FaBullhorn
 } from "react-icons/fa";
+import { HiSparkles } from "react-icons/hi2";
 
 interface AdminUser {
   id: string;
@@ -43,6 +44,15 @@ interface GalleryItem {
   alt: string;
 }
 
+interface FacilityItem {
+  _id: string;
+  title: string;
+  description: string;
+  iconName: string;
+  image: string;
+  order?: number;
+}
+
 // Mock Admission inquiries data for the Admissions Tab
 interface AdmissionInquiry {
   id: string;
@@ -62,7 +72,8 @@ export default function AdminDashboardPage() {
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"overview" | "posts" | "gallery" | "testimonials" | "admissions" | "contacts" | "resources" | "settings">("overview");
+  const [facilities, setFacilities] = useState<FacilityItem[]>([]);
+  const [activeTab, setActiveTab] = useState<"overview" | "posts" | "gallery" | "testimonials" | "facilities" | "admissions" | "contacts" | "resources" | "settings">("overview");
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -73,6 +84,7 @@ export default function AdminDashboardPage() {
   const [gallerySearch, setGallerySearch] = useState("");
   const [galleryCategoryFilter, setGalleryCategoryFilter] = useState("all");
   const [testimonialSearch, setTestimonialSearch] = useState("");
+  const [facilitySearch, setFacilitySearch] = useState("");
   const [admissionSearch, setAdmissionSearch] = useState("");
   const [admissionStatusFilter, setAdmissionStatusFilter] = useState("all");
 
@@ -116,6 +128,36 @@ export default function AdminDashboardPage() {
     mode: "add" | "edit";
     data?: TestimonialItem;
   }>({ isOpen: false, mode: "add" });
+
+  const [facilityModal, setFacilityModal] = useState<{
+    isOpen: boolean;
+    mode: "add" | "edit";
+    data?: FacilityItem;
+  }>({ isOpen: false, mode: "add" });
+
+  const [facilityForm, setFacilityForm] = useState({
+    title: "",
+    description: "",
+    iconName: "BookOpen",
+    image: "",
+    order: 0,
+  });
+  const [uploadingFacilityImg, setUploadingFacilityImg] = useState(false);
+
+  const [bannerTitleInput, setBannerTitleInput] = useState("Admissions Open for Session 2026-27");
+  const [savingBannerTitle, setSavingBannerTitle] = useState(false);
+
+  // Popup state
+  const [popupForm, setPopupForm] = useState({
+    popupEnabled: true,
+    popupTitle: "Admissions Open for Session 2026-27",
+    popupContent: "Join Abhilasha Academy for English & Hindi medium excellence. Registration forms for the new session are now available.",
+    popupImage: "",
+    popupButtonText: "Apply For Admission",
+    popupButtonLink: "/admissions",
+  });
+  const [uploadingPopupImg, setUploadingPopupImg] = useState(false);
+  const [savingPopupSettings, setSavingPopupSettings] = useState(false);
 
   const [testimonialForm, setTestimonialForm] = useState({
     name: "",
@@ -220,6 +262,32 @@ export default function AdminDashboardPage() {
       if (testimonialsRes.ok) {
         const testimonialsData = await testimonialsRes.json();
         setTestimonials(testimonialsData.testimonials || []);
+      }
+
+      // 8. Fetch facilities
+      const facilitiesRes = await fetch("/api/facilities");
+      if (facilitiesRes.ok) {
+        const facilitiesData = await facilitiesRes.json();
+        setFacilities(facilitiesData.facilities || []);
+      }
+
+      // 9. Fetch site settings
+      const settingsRes = await fetch("/api/settings");
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        if (settingsData?.settings) {
+          if (settingsData.settings.bannerTitle) {
+            setBannerTitleInput(settingsData.settings.bannerTitle);
+          }
+          setPopupForm({
+            popupEnabled: settingsData.settings.popupEnabled !== undefined ? settingsData.settings.popupEnabled : true,
+            popupTitle: settingsData.settings.popupTitle || "Admissions Open for Session 2026-27",
+            popupContent: settingsData.settings.popupContent || "",
+            popupImage: settingsData.settings.popupImage || "",
+            popupButtonText: settingsData.settings.popupButtonText || "Apply For Admission",
+            popupButtonLink: settingsData.settings.popupButtonLink || "/admissions",
+          });
+        }
       }
     } catch (error) {
       showToast("error", "Failed to retrieve dashboard details.");
@@ -577,6 +645,186 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Facility Handlers
+  const handleFacilityImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFacilityImg(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setFacilityForm((prev) => ({ ...prev, image: data.url }));
+        showToast("success", "Facility image uploaded successfully!");
+      } else {
+        showToast("error", data.error || "Upload failed");
+      }
+    } catch (err) {
+      showToast("error", "Network error uploading facility image");
+    } finally {
+      setUploadingFacilityImg(false);
+    }
+  };
+
+  const handleFacilitySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!facilityForm.title || !facilityForm.description) {
+      showToast("error", "Please fill in title and description.");
+      return;
+    }
+
+    try {
+      const url = facilityModal.mode === "add"
+        ? "/api/facilities"
+        : `/api/facilities/${facilityModal.data?._id}`;
+      const method = facilityModal.mode === "add" ? "POST" : "PUT";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          title: facilityForm.title,
+          description: facilityForm.description,
+          iconName: facilityForm.iconName,
+          image: facilityForm.image || "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=600&auto=format&fit=crop",
+          order: Number(facilityForm.order) || 0,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", facilityModal.mode === "add" ? "Facility created!" : "Facility updated!");
+        setFacilityModal({ isOpen: false, mode: "add" });
+        setFacilityForm({ title: "", description: "", iconName: "BookOpen", image: "", order: 0 });
+        fetchData();
+      } else {
+        showToast("error", data.error || "Failed to save facility.");
+      }
+    } catch (err) {
+      showToast("error", "Network error while saving facility.");
+    }
+  };
+
+  const handleEditFacility = (item: FacilityItem) => {
+    setFacilityForm({
+      title: item.title,
+      description: item.description,
+      iconName: item.iconName || "BookOpen",
+      image: item.image || "",
+      order: item.order || 0,
+    });
+    setFacilityModal({ isOpen: true, mode: "edit", data: item });
+  };
+
+  const handleDeleteFacility = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this facility?")) return;
+    try {
+      const res = await fetch(`/api/facilities/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        setFacilities((prev) => prev.filter((f) => f._id !== id));
+        showToast("success", "Facility deleted successfully.");
+      } else {
+        const data = await res.json();
+        showToast("error", data.error || "Failed to delete facility.");
+      }
+    } catch (err) {
+      showToast("error", "Network error while deleting facility.");
+    }
+  };
+
+  const handleSaveBannerTitle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBannerTitle(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ bannerTitle: bannerTitleInput }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", "TopBar announcement title updated!");
+      } else {
+        showToast("error", data.error || "Failed to update banner title.");
+      }
+    } catch (err) {
+      showToast("error", "Network error updating banner title.");
+    } finally {
+      setSavingBannerTitle(false);
+    }
+  };
+
+  // Popup Handlers
+  const handlePopupImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPopupImg(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setPopupForm((prev) => ({ ...prev, popupImage: data.url }));
+        showToast("success", "Popup image poster uploaded!");
+      } else {
+        showToast("error", data.error || "Upload failed");
+      }
+    } catch (err) {
+      showToast("error", "Network error uploading image");
+    } finally {
+      setUploadingPopupImg(false);
+    }
+  };
+
+  const handleSavePopupSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingPopupSettings(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(popupForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", "Website Entrance Popup settings saved!");
+      } else {
+        showToast("error", data.error || "Failed to update popup settings.");
+      }
+    } catch (err) {
+      showToast("error", "Network error saving popup settings.");
+    } finally {
+      setSavingPopupSettings(false);
+    }
+  };
+
   // Image Upload Handlers
   const handlePostImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -794,6 +1042,7 @@ export default function AdminDashboardPage() {
     { id: "posts", label: "News & Posts", icon: <FaNewspaper className="w-4 h-4" /> },
     { id: "gallery", label: "Photo Gallery", icon: <FaImage className="w-4 h-4" /> },
     { id: "testimonials", label: "Testimonials", icon: <FaQuoteLeft className="w-4 h-4" /> },
+    { id: "facilities", label: "Campus Facilities", icon: <FaBuilding className="w-4 h-4" /> },
     { id: "admissions", label: "Admissions", icon: <FaGraduationCap className="w-4 h-4" /> },
     { id: "contacts", label: "Contact Messages", icon: <FaEnvelope className="w-4 h-4" /> },
     { id: "resources", label: "Admission Forms", icon: <FaFileDownload className="w-4 h-4" /> },
@@ -806,9 +1055,17 @@ export default function AdminDashboardPage() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-rose-500/5 blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-blue-500/5 blur-3xl pointer-events-none" />
 
+      {/* Mobile Sidebar Overlay Backdrop */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-35 md:hidden cursor-pointer"
+        />
+      )}
+
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900/90 border-r border-white/5 flex flex-col justify-between transform transition-transform duration-300 md:translate-x-0 md:static ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900/95 border-r border-white/5 flex flex-col justify-between transform transition-transform duration-300 md:translate-x-0 md:static ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         <div className="flex flex-col">
@@ -893,6 +1150,7 @@ export default function AdminDashboardPage() {
               {activeTab === "posts" && "News & Post Circulars"}
               {activeTab === "gallery" && "Campus Photo Gallery"}
               {activeTab === "testimonials" && "Community Testimonials"}
+              {activeTab === "facilities" && "Campus Facilities Management"}
               {activeTab === "admissions" && "Admissions inquiries"}
               {activeTab === "settings" && "System Settings"}
             </h2>
@@ -1547,6 +1805,93 @@ export default function AdminDashboardPage() {
                 </div>
               )}
 
+              {/* TAB 8: FACILITIES MANAGEMENT */}
+              {activeTab === "facilities" && (
+                <div className="flex flex-col gap-6">
+                  {/* Action bar */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-6 shadow-xl">
+                    <div className="relative flex-grow max-w-md">
+                      <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-3.5 h-3.5" />
+                      <input
+                        type="text"
+                        placeholder="Search campus facilities..."
+                        value={facilitySearch}
+                        onChange={(e) => setFacilitySearch(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-2.5 pl-10 pr-4 text-xs sm:text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-500"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        setFacilityForm({ title: "", description: "", iconName: "BookOpen", image: "", order: 0 });
+                        setFacilityModal({ isOpen: true, mode: "add" });
+                      }}
+                      className="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-rose-600/20"
+                    >
+                      <FaPlus className="w-3.5 h-3.5" />
+                      <span>Add New Facility</span>
+                    </button>
+                  </div>
+
+                  {/* Facilities Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {facilities
+                      .filter((fac) =>
+                        fac.title.toLowerCase().includes(facilitySearch.toLowerCase()) ||
+                        fac.description.toLowerCase().includes(facilitySearch.toLowerCase())
+                      )
+                      .map((fac) => (
+                        <div
+                          key={fac._id}
+                          className="bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between group hover:border-white/20 transition-all duration-300"
+                        >
+                          <div className="relative h-44 w-full bg-slate-950 overflow-hidden">
+                            <img
+                              src={fac.image || "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=600&auto=format&fit=crop"}
+                              alt={fac.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md text-[10px] font-extrabold uppercase tracking-wider text-rose-400 border border-white/10 flex items-center gap-1.5">
+                              <span>Icon: {fac.iconName}</span>
+                            </div>
+                          </div>
+
+                          <div className="p-5 flex-grow flex flex-col justify-between">
+                            <div>
+                              <h4 className="text-base font-extrabold text-white mb-2">{fac.title}</h4>
+                              <p className="text-slate-400 text-xs leading-relaxed line-clamp-3 mb-4">{fac.description}</p>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/5 mt-auto">
+                              <button
+                                onClick={() => handleEditFacility(fac)}
+                                className="p-2 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl transition-colors cursor-pointer text-xs flex items-center gap-1 font-bold"
+                              >
+                                <FaEdit className="w-3.5 h-3.5 text-blue-400" />
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteFacility(fac._id)}
+                                className="p-2 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-xl transition-colors cursor-pointer text-xs flex items-center gap-1 font-bold"
+                              >
+                                <FaTrash className="w-3.5 h-3.5" />
+                                <span>Delete</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {facilities.length === 0 && (
+                    <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center justify-center text-slate-400">
+                      <FaBuilding className="w-12 h-12 mb-4 text-slate-600 animate-pulse" />
+                      <p className="font-bold text-sm text-white">No facilities registered yet</p>
+                      <p className="text-xs text-slate-500 mt-1 max-w-sm">Click &quot;Add New Facility&quot; above to create campus facility cards.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* TAB 5: SYSTEM CONFIG PANEL */}
               {activeTab === "settings" && (
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-6 shadow-xl">
@@ -1568,6 +1913,165 @@ export default function AdminDashboardPage() {
                       <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Access Scope</span>
                       <p className="font-bold text-amber-500 mt-1 uppercase tracking-widest">Full Administrative Privilege</p>
                     </div>
+                  </div>
+
+                  {/* Dedicated Quick Announcement Title Card */}
+                  <div className="bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-6 shadow-xl flex flex-col gap-4 mt-2">
+                    <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
+                      <h3 className="text-base font-extrabold text-amber-400 flex items-center gap-2">
+                        <HiSparkles className="w-4 h-4 text-amber-400" />
+                        <span>Quick Header Announcement Title</span>
+                      </h3>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300 bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/20">
+                        TopBar Badge Setting
+                      </span>
+                    </div>
+
+                    <p className="text-slate-300 text-xs sm:text-sm">
+                      Type your title text below to dynamically update the yellow announcement badge at the very top of every page on the website.
+                    </p>
+
+                    {/* Live Badge Preview */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-slate-950 p-3.5 rounded-xl border border-white/10">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0">Live Website Preview:</span>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-bold tracking-wide">
+                        <HiSparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                        <span>{bannerTitleInput || "Admissions Open for Session 2026-27"}</span>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleSaveBannerTitle} className="flex flex-col sm:flex-row gap-3 items-end">
+                      <div className="flex-grow w-full">
+                        <label className="text-white text-[11px] font-bold uppercase tracking-wider block mb-1.5">
+                          Announcement Title Text
+                        </label>
+                        <input
+                          type="text"
+                          value={bannerTitleInput}
+                          onChange={(e) => setBannerTitleInput(e.target.value)}
+                          placeholder="Ex: Admissions Open for Session 2026-27"
+                          className="w-full bg-slate-950 border border-amber-500/40 text-white font-semibold rounded-xl py-2.5 px-4 text-xs sm:text-sm focus:outline-none focus:border-amber-400 placeholder:text-slate-600 shadow-inner"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={savingBannerTitle}
+                        className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-lg shadow-amber-400/20 shrink-0"
+                      >
+                        {savingBannerTitle ? <FaSpinner className="w-4 h-4 animate-spin" /> : <FaCheck className="w-4 h-4" />}
+                        <span>Save Announcement Title</span>
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Dedicated Website Entrance Image Popup Settings */}
+                  <div className="bg-gradient-to-br from-rose-500/10 via-slate-900 to-slate-900 border border-rose-500/30 rounded-2xl p-6 shadow-xl flex flex-col gap-5 mt-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-rose-500/20 pb-4">
+                      <div>
+                        <h3 className="text-base font-extrabold text-rose-400 flex items-center gap-2">
+                          <FaImage className="w-4 h-4 text-rose-400" />
+                          <span>Website Entrance Image Popup</span>
+                        </h3>
+                        <p className="text-slate-400 text-xs mt-1">
+                          Upload an Image Poster that automatically pops up when visitors open or refresh the website. Toggle ON to display, or OFF to disable.
+                        </p>
+                      </div>
+
+                      {/* Interactive ON / OFF Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={() => setPopupForm((prev) => ({ ...prev, popupEnabled: !prev.popupEnabled }))}
+                        className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-md ${
+                          popupForm.popupEnabled
+                            ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20"
+                            : "bg-slate-800 hover:bg-slate-700 text-slate-400 border border-white/10"
+                        }`}
+                      >
+                        <span className={`w-2.5 h-2.5 rounded-full ${popupForm.popupEnabled ? "bg-slate-950 animate-ping" : "bg-slate-500"}`} />
+                        <span>{popupForm.popupEnabled ? "Popup Status: ON" : "Popup Status: OFF"}</span>
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSavePopupSettings} className="flex flex-col gap-5">
+                      {/* Image Poster Upload Box */}
+                      <div>
+                        <label className="text-white text-xs font-extrabold uppercase tracking-wider block mb-2">
+                          Upload Popup Image Poster
+                        </label>
+
+                        {popupForm.popupImage ? (
+                          <div className="relative w-full max-w-md h-64 rounded-2xl overflow-hidden border-2 border-rose-500/40 bg-slate-950 shadow-2xl group flex items-center justify-center">
+                            <img
+                              src={popupForm.popupImage}
+                              alt="Uploaded Popup Poster"
+                              className="w-full h-full object-contain"
+                            />
+                            <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+                              <label className="bg-white hover:bg-slate-100 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 cursor-pointer shadow-lg">
+                                <FaUpload className="w-3.5 h-3.5 text-rose-600" />
+                                <span>Change Image</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={handlePopupImageUpload} disabled={uploadingPopupImg} />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => setPopupForm((prev) => ({ ...prev, popupImage: "" }))}
+                                className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 cursor-pointer shadow-lg"
+                              >
+                                <FaTimes className="w-3.5 h-3.5" />
+                                <span>Remove</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-rose-500/40 hover:border-rose-400 rounded-2xl p-8 bg-slate-950/60 cursor-pointer transition-colors max-w-md text-center">
+                            {uploadingPopupImg ? (
+                              <>
+                                <FaSpinner className="w-8 h-8 animate-spin text-rose-500" />
+                                <span className="text-xs font-bold text-white">Uploading poster image...</span>
+                              </>
+                            ) : (
+                              <>
+                                <FaUpload className="w-8 h-8 text-rose-500" />
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-extrabold text-white">Click to Upload Popup Poster Image</span>
+                                  <span className="text-slate-400 text-xs mt-1">PNG, JPG, WebP (Admission Announcement Poster)</span>
+                                </div>
+                              </>
+                            )}
+                            <input type="file" accept="image/*" className="hidden" onChange={handlePopupImageUpload} disabled={uploadingPopupImg} />
+                          </label>
+                        )}
+                      </div>
+
+                      {/* Optional Target Link */}
+                      <div className="max-w-md">
+                        <label className="text-white text-xs font-bold uppercase tracking-wider block mb-1.5">
+                          Target Click Link (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={popupForm.popupButtonLink}
+                          onChange={(e) => setPopupForm({ ...popupForm, popupButtonLink: e.target.value })}
+                          placeholder="/admissions or https://..."
+                          className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-2.5 px-4 text-xs focus:outline-none focus:border-rose-500 placeholder:text-slate-600 font-semibold"
+                        />
+                        <span className="text-slate-500 text-[11px] mt-1 block">
+                          When visitors click the poster image, it opens this page (defaults to `/admissions`).
+                        </span>
+                      </div>
+
+                      <div className="flex justify-start pt-2">
+                        <button
+                          type="submit"
+                          disabled={savingPopupSettings}
+                          className="bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-lg shadow-rose-600/20"
+                        >
+                          {savingPopupSettings ? <FaSpinner className="w-4 h-4 animate-spin" /> : <FaCheck className="w-4 h-4" />}
+                          <span>Save Image Popup Settings</span>
+                        </button>
+                      </div>
+                    </form>
                   </div>
 
                   <h3 className="text-base font-extrabold text-white border-b border-white/5 pb-2 mt-4">Database Migration</h3>
@@ -2207,6 +2711,125 @@ export default function AdminDashboardPage() {
                     className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs cursor-pointer transition-colors shadow-lg shadow-rose-600/20"
                   >
                     {testimonialModal.mode === "add" ? "Publish Testimonial" : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Facility Modal Dialog (Add/Edit) */}
+      <AnimatePresence>
+        {facilityModal.isOpen && (
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
+                <h3 className="text-lg sm:text-xl font-black text-white">
+                  {facilityModal.mode === "add" ? "Create Campus Facility" : "Update Campus Facility"}
+                </h3>
+                <button
+                  onClick={() => setFacilityModal({ isOpen: false, mode: "add" })}
+                  className="p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white cursor-pointer transition-colors"
+                >
+                  <FaTimes className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleFacilitySubmit} className="flex flex-col gap-4">
+                <div>
+                  <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                    Facility Title
+                  </label>
+                  <input
+                    type="text"
+                    value={facilityForm.title}
+                    onChange={(e) => setFacilityForm({ ...facilityForm, title: e.target.value })}
+                    placeholder="Ex: Resourceful Library"
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                    Icon Name
+                  </label>
+                  <select
+                    value={facilityForm.iconName}
+                    onChange={(e) => setFacilityForm({ ...facilityForm, iconName: e.target.value })}
+                    className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-rose-500 cursor-pointer"
+                  >
+                    <option value="BookOpen">BookOpen (Library)</option>
+                    <option value="Beaker">Beaker (Science Lab)</option>
+                    <option value="Laptop">Laptop (Computer Lab)</option>
+                    <option value="Trophy">Trophy (Sports)</option>
+                    <option value="Music">Music (Cultural)</option>
+                    <option value="MonitorPlay">MonitorPlay (Smart Classes)</option>
+                    <option value="ShieldCheck">ShieldCheck (CCTV Security)</option>
+                    <option value="Bus">Bus (Transport)</option>
+                    <option value="HeartPulse">HeartPulse (First Aid)</option>
+                    <option value="Droplet">Droplet (Clean Water)</option>
+                    <option value="Sparkles">Sparkles (General)</option>
+                    <option value="Shield">Shield (Security)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={facilityForm.description}
+                    onChange={(e) => setFacilityForm({ ...facilityForm, description: e.target.value })}
+                    placeholder="Brief description of the facility features and infrastructure..."
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                    Facility Cover Image
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={facilityForm.image}
+                      onChange={(e) => setFacilityForm({ ...facilityForm, image: e.target.value })}
+                      placeholder="https://images.unsplash.com/... or upload image"
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600"
+                    />
+                    <label className="bg-white/10 hover:bg-white/20 text-white px-4 rounded-xl flex items-center justify-center cursor-pointer transition-colors shrink-0 text-xs font-bold">
+                      {uploadingFacilityImg ? <FaSpinner className="w-4 h-4 animate-spin text-rose-500" /> : <FaUpload className="w-4 h-4" />}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleFacilityImageUpload} disabled={uploadingFacilityImg} />
+                    </label>
+                  </div>
+                  {facilityForm.image && (
+                    <div className="mt-3 relative h-32 rounded-xl overflow-hidden border border-white/10">
+                      <img src={facilityForm.image} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-3 border-t border-white/5 pt-4 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setFacilityModal({ isOpen: false, mode: "add" })}
+                    className="px-5 py-2.5 rounded-xl border border-white/10 text-slate-300 hover:bg-white/5 text-xs font-bold cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/20 cursor-pointer transition-all"
+                  >
+                    {facilityModal.mode === "add" ? "Create Facility" : "Save Changes"}
                   </button>
                 </div>
               </form>

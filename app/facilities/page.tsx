@@ -1,11 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { facilitiesData } from "@/data/facilities";
 import { BookOpen, Laptop, ShieldCheck, Beaker, Trophy, Music, MonitorPlay, HeartPulse, Droplet, Sparkles, Shield, Bus } from "lucide-react";
 import Container from "@/components/Common/Container";
-import Heading from "@/components/Common/Heading";
 import AnimatedSection from "@/components/Common/AnimatedSection";
 import Button from "@/components/Common/Button";
 
@@ -40,6 +39,25 @@ const getFacilityIcon = (iconName: string) => {
 };
 
 export default function FacilitiesPage() {
+  const [facilities, setFacilities] = useState<any[]>(facilitiesData);
+
+  useEffect(() => {
+    async function loadFacilities() {
+      try {
+        const res = await fetch("/api/facilities");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.facilities) && data.facilities.length > 0) {
+            setFacilities(data.facilities);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch dynamic facilities page data, using fallback:", err);
+      }
+    }
+    loadFacilities();
+  }, []);
+
   return (
     <main className="pt-36 sm:pt-40 lg:pt-44 pb-24 min-h-screen bg-brand-bg relative overflow-hidden">
       {/* Background decorations */}
@@ -64,12 +82,12 @@ export default function FacilitiesPage() {
 
         {/* Detailed Alternating Sections */}
         <div className="flex flex-col gap-24 mb-20">
-          {facilitiesData.map((facility, idx) => {
+          {facilities.map((facility: any, idx: number) => {
             const isEven = idx % 2 === 0;
 
             return (
               <AnimatedSection
-                key={facility.id}
+                key={facility._id || facility.id || idx}
                 variant={isEven ? "fade-right" : "fade-left"}
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">

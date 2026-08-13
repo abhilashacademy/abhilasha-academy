@@ -1,4 +1,5 @@
 "use client";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { facilitiesData } from "@/data/facilities";
 import { BookOpen, Laptop, ShieldCheck, Beaker, Trophy, Music, MonitorPlay, HeartPulse, Droplet, Sparkles, Shield, Bus } from "lucide-react";
@@ -37,6 +38,25 @@ const getFacilityIcon = (iconName: string) => {
 };
 
 export default function Facilities() {
+  const [facilities, setFacilities] = useState<any[]>(facilitiesData);
+
+  useEffect(() => {
+    async function loadFacilities() {
+      try {
+        const res = await fetch("/api/facilities");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.facilities) && data.facilities.length > 0) {
+            setFacilities(data.facilities);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch dynamic facilities, using fallback:", err);
+      }
+    }
+    loadFacilities();
+  }, []);
+
   return (
     <section className="py-24 bg-brand-bg relative overflow-hidden">
       {/* Decorative details */}
@@ -55,9 +75,9 @@ export default function Facilities() {
 
         {/* Grid List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {facilitiesData.map((facility, idx) => (
+          {facilities.map((facility: any, idx: number) => (
             <AnimatedSection
-              key={facility.id}
+              key={facility._id || facility.id || idx}
               variant="fade-up"
               delay={idx * 0.05}
               className="h-full animate-delay-200"

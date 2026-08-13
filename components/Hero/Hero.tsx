@@ -35,7 +35,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative w-full h-screen overflow-hidden flex items-center justify-center bg-slate-950">
+    <section className="relative w-full min-h-[90vh] sm:min-h-screen py-28 sm:py-36 md:py-44 overflow-hidden flex items-center justify-center bg-slate-950">
       {/* Background Slider with Ken Burns effect */}
       <div className="absolute inset-0 z-0">
         <AnimatePresence mode="popLayout">
@@ -75,7 +75,7 @@ export default function Hero() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute top-[20%] left-[8%] w-72 h-72 rounded-full bg-primary/10 blur-3xl"
+          className="absolute top-[20%] left-[8%] w-52 sm:w-72 h-52 sm:h-72 rounded-full bg-primary/10 blur-3xl pointer-events-none"
         />
         <motion.div
           animate={{
@@ -88,25 +88,25 @@ export default function Hero() {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute bottom-[25%] right-[10%] w-96 h-96 rounded-full bg-secondary/10 blur-3xl"
+          className="absolute bottom-[25%] right-[10%] w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-secondary/10 blur-3xl pointer-events-none"
         />
       </div>
 
       {/* Hero Content Overlay */}
-      <Container className="relative z-10 text-center flex flex-col items-center pt-24 md:pt-32">
+      <Container className="relative z-10 text-center flex flex-col items-center my-auto">
         <motion.div
           variants={textContainerVariants}
           initial="hidden"
           animate="visible"
-          className="max-w-4xl mx-auto flex flex-col items-center"
+          className="max-w-4xl mx-auto flex flex-col items-center px-2"
         >
           {/* Tagline pill */}
           <motion.div
             variants={textItemVariants}
-            className="mb-6 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 inline-flex items-center gap-2"
+            className="mb-4 sm:mb-6 px-3.5 sm:px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 inline-flex items-center gap-2"
           >
-            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-            <span className="text-secondary font-extrabold text-xs md:text-sm tracking-widest uppercase">
+            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse shrink-0" />
+            <span className="text-secondary font-extrabold text-[11px] sm:text-xs md:text-sm tracking-widest uppercase">
               Admissions Open 2026-27
             </span>
           </motion.div>
@@ -114,7 +114,7 @@ export default function Hero() {
           {/* Main Titles */}
           <motion.h1
             variants={textItemVariants}
-            className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight uppercase select-none mb-6"
+            className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight uppercase select-none mb-4 sm:mb-6"
           >
             Welcome to <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-secondary">
@@ -125,7 +125,7 @@ export default function Hero() {
           {/* Subheading Quote */}
           <motion.p
             variants={textItemVariants}
-            className="text-slate-200 text-lg sm:text-xl md:text-2xl font-medium tracking-wide max-w-3xl leading-relaxed italic mb-10 text-center"
+            className="text-slate-200 text-sm sm:text-lg md:text-xl lg:text-2xl font-medium tracking-wide max-w-3xl leading-relaxed italic mb-8 sm:mb-10 text-center"
           >
             &ldquo;Where Teaching is Not a Business but an Interest. Hope Sustains Life.&rdquo;
           </motion.p>
@@ -133,13 +133,13 @@ export default function Hero() {
           {/* Call To Actions */}
           <motion.div
             variants={textItemVariants}
-            className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
+            className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 w-full sm:w-auto"
           >
             <Button
               href="/about"
               variant="outline"
               size="lg"
-              className="text-white border-white hover:bg-white hover:text-primary w-full sm:w-auto"
+              className="text-white border-white hover:bg-white hover:text-primary w-full sm:w-auto text-xs sm:text-sm"
             >
               Explore Campus
             </Button>
@@ -147,7 +147,7 @@ export default function Hero() {
               href="/admissions"
               variant="secondary"
               size="lg"
-              className="bg-gradient-to-r from-secondary to-amber-600 hover:from-amber-600 hover:to-secondary border-none w-full sm:w-auto shadow-xl shadow-secondary/25"
+              className="bg-gradient-to-r from-secondary to-amber-600 hover:from-amber-600 hover:to-secondary border-none w-full sm:w-auto shadow-xl shadow-secondary/25 text-xs sm:text-sm"
             >
               Apply Now
             </Button>
@@ -156,7 +156,7 @@ export default function Hero() {
       </Container>
 
       {/* Slider Controls & Navigation Indicators */}
-      <div className="absolute bottom-8 left-0 right-0 z-20 flex flex-col items-center gap-3">
+      <div className="absolute bottom-4 sm:bottom-8 left-0 right-0 z-20 flex flex-col items-center gap-3">
         {/* Indicator Dots */}
         <div className="flex items-center gap-2 bg-slate-900/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
           {heroImages.map((_, idx) => (
