@@ -5,11 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { navItems } from "@/data/navigation";
+import { navItems, NavItem } from "@/data/navigation";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
-import { ChevronDown } from "lucide-react";
-import Button from "../Common/Button";
-import Container from "../Common/Container";
+import { ChevronDown, Sparkles } from "lucide-react";
 
 interface DesktopNavProps {
   onToggleMobileMenu: () => void;
@@ -23,90 +21,107 @@ export default function DesktopNav({
   isScrolled,
 }: DesktopNavProps) {
   const pathname = usePathname();
-  const isHome = pathname === "/";
-  const isNavbarLight = isHome && !isScrolled;
+
+  // Exactly 7 quick links at top
+  const top7NavItems = navItems.slice(0, 7);
+
+  const isItemActive = (item: NavItem) => {
+    if (item.href === "/") {
+      return pathname === "/";
+    }
+    if (pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))) {
+      return true;
+    }
+    if (item.subItems) {
+      return item.subItems.some((sub) => {
+        const cleanHref = sub.href.split("?")[0].split("#")[0];
+        return pathname === sub.href || (cleanHref !== "/" && pathname.startsWith(cleanHref));
+      });
+    }
+    return false;
+  };
 
   return (
-    <nav
-      className={`w-full transition-all duration-300 z-40 border-b ${
-        isScrolled
-          ? "glass-nav py-3 shadow-lg border-slate-200/85"
-          : "bg-transparent py-5 border-transparent"
-      }`}
-    >
-      <Container className="flex items-center justify-between">
-        {/* Logo and Brand Name */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative w-12 h-12 bg-white rounded-xl p-1 shadow-md transition-transform duration-300 group-hover:scale-105">
+    <nav className="w-full pt-3 pb-1 px-3 sm:px-6 transition-all duration-500 z-40 select-none">
+      <div
+        className={`max-w-7xl mx-auto rounded-full transition-all duration-500 px-4 sm:px-6 py-2 flex items-center justify-between ${
+          isScrolled
+            ? "bg-slate-950/95 border border-amber-400/40 backdrop-blur-2xl shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
+            : "bg-slate-950/80 border border-white/15 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:border-amber-400/25"
+        }`}
+      >
+        {/* Brand Logo and Title */}
+        <Link href="/" className="flex items-center gap-3 group shrink-0">
+          <div className="relative w-10 h-10 md:w-11 md:h-11 bg-white/95 rounded-2xl p-1 shadow-[0_0_15px_rgba(255,255,255,0.2)] ring-2 ring-amber-400/40 group-hover:ring-amber-400 transition-all duration-300 group-hover:scale-105">
             <Image
               src="/logo.webp"
               alt="Abhilasha Group of Academies"
               fill
-              sizes="48px"
+              sizes="44px"
               className="object-contain p-1"
               priority
             />
           </div>
           <div className="flex flex-col">
-            <span className={`font-black text-xl md:text-2xl leading-none uppercase tracking-wide transition-colors duration-300 ${
-              isNavbarLight
-                ? "text-white group-hover:text-white/85"
-                : "text-primary group-hover:text-secondary"
-            }`}>
+            <span className="font-black text-lg md:text-xl leading-none uppercase tracking-wide bg-gradient-to-r from-white via-amber-100 to-amber-300 bg-clip-text text-transparent group-hover:from-amber-300 group-hover:to-amber-100 transition-all duration-300">
               Abhilasha
             </span>
-            <span className={`font-bold text-[9px] md:text-[10px] leading-none uppercase tracking-[0.16em] mt-1 select-none transition-colors duration-300 ${
-              isNavbarLight
-                ? "text-white/80"
-                : "text-secondary"
-            }`}>
+            <span className="font-extrabold text-[9px] md:text-[10px] leading-none uppercase tracking-[0.18em] text-amber-400/90 mt-1 select-none">
               Group of Academies
             </span>
           </div>
         </Link>
 
-        {/* Central Nav Links */}
-        <div className="hidden lg:flex items-center gap-1.5">
-          {navItems.map((item) => {
-            if (item.subItems) {
-              const isChildActive = item.subItems.some((sub) => pathname === sub.href);
+        {/* Central Nav Links - Exactly 7 Top Quick Links */}
+        <div className="hidden lg:flex items-center gap-1 xl:gap-1.5">
+          {top7NavItems.map((item) => {
+            const active = isItemActive(item);
 
+            if (item.subItems) {
               return (
-                <div key={item.label} className="relative group py-2">
+                <div key={item.label} className="relative group py-1">
                   <button
-                    className={`px-3.5 py-2.5 rounded-xl text-[14px] font-bold tracking-wide transition-all duration-300 flex items-center gap-1 cursor-pointer select-none ${
-                      isChildActive
-                        ? isNavbarLight
-                          ? "text-white bg-white/10"
-                          : "text-primary bg-primary/5"
-                        : isNavbarLight
-                        ? "text-white/95 hover:text-white hover:bg-white/10"
-                        : "text-slate-600 hover:text-primary hover:bg-slate-50"
+                    className={`relative px-3.5 py-2 rounded-full text-[13.5px] font-bold tracking-wide transition-all duration-300 flex items-center gap-1.5 cursor-pointer select-none ${
+                      active
+                        ? "text-amber-300 font-extrabold border-2 border-amber-400 bg-amber-400/15 shadow-[0_0_20px_rgba(251,191,36,0.35)]"
+                        : "text-slate-200 hover:text-amber-300 hover:bg-white/10 border border-transparent hover:border-amber-400/30"
                     }`}
                   >
-                    <span>{item.label}</span>
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-180 shrink-0 ${
-                      isNavbarLight
-                        ? "text-white/60 group-hover:text-white"
-                        : "text-slate-400 group-hover:text-primary"
+                    {active && (
+                      <motion.span
+                        layoutId="activeNavPill"
+                        className="absolute inset-0 rounded-full border-2 border-amber-400 bg-amber-400/15 shadow-[0_0_20px_rgba(251,191,36,0.35)] pointer-events-none"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    {active && (
+                      <span className="relative z-10 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] animate-pulse" />
+                    )}
+                    <span className="relative z-10">{item.label}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 relative z-10 transition-transform duration-300 group-hover:rotate-180 shrink-0 ${
+                      active ? "text-amber-300" : "text-slate-400 group-hover:text-amber-300"
                     }`} />
                   </button>
 
-                  {/* Dropdown Menu */}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-48 bg-white/95 backdrop-blur-md border border-slate-200/85 rounded-2xl shadow-[0_15px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.03)] p-1.5 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-50 flex flex-col gap-0.5">
+                  {/* Creative Dropdown Menu */}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 w-52 bg-slate-950/95 backdrop-blur-2xl border border-amber-400/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-2 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-50 flex flex-col gap-1">
+                    <div className="w-10 h-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full mx-auto mb-1 opacity-70" />
                     {item.subItems.map((sub) => {
                       const isSubActive = pathname === sub.href;
                       return (
                         <Link
                           key={sub.label}
                           href={sub.href}
-                          className={`px-4 py-2 text-xs md:text-[13px] font-bold transition-all duration-200 block rounded-xl ${
+                          className={`px-3.5 py-2 rounded-xl text-xs md:text-[13px] font-bold transition-all duration-200 flex items-center justify-between ${
                             isSubActive
-                              ? "text-primary bg-primary/5"
-                              : "text-slate-600 hover:text-primary hover:bg-primary/5"
+                              ? "text-amber-300 bg-amber-400/20 border-l-4 border-amber-400 font-extrabold shadow-[0_0_12px_rgba(251,191,36,0.2)]"
+                              : "text-slate-300 hover:text-amber-300 hover:bg-amber-400/10 hover:border-l-4 hover:border-amber-400/60"
                           }`}
                         >
-                          {sub.label}
+                          <span>{sub.label}</span>
+                          {isSubActive && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#fbbf24]" />
+                          )}
                         </Link>
                       );
                     })}
@@ -115,69 +130,57 @@ export default function DesktopNav({
               );
             }
 
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/" && pathname.startsWith(item.href));
-
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`relative px-3.5 py-2.5 rounded-xl text-[14px] font-bold tracking-wide transition-all duration-300 select-none ${
-                  isActive
-                    ? isNavbarLight
-                      ? "text-white bg-white/10"
-                      : "text-primary bg-primary/5"
-                    : isNavbarLight
-                    ? "text-white/95 hover:text-white hover:bg-white/10"
-                    : "text-slate-600 hover:text-primary hover:bg-slate-50"
+                className={`relative px-3.5 py-2 rounded-full text-[13.5px] font-bold tracking-wide transition-all duration-300 select-none flex items-center gap-1.5 ${
+                  active
+                    ? "text-amber-300 font-extrabold border-2 border-amber-400 bg-amber-400/15 shadow-[0_0_20px_rgba(251,191,36,0.35)]"
+                    : "text-slate-200 hover:text-amber-300 hover:bg-white/10 border border-transparent hover:border-amber-400/30"
                 }`}
               >
-                {item.label}
-                {isActive && (
+                {active && (
                   <motion.span
-                    layoutId="activeNavIndicator"
-                    className={`absolute bottom-1.5 left-4 right-4 h-0.5 rounded-full ${
-                      isNavbarLight
-                        ? "bg-white"
-                        : "bg-gradient-to-r from-primary to-secondary"
-                    }`}
+                    layoutId="activeNavPill"
+                    className="absolute inset-0 rounded-full border-2 border-amber-400 bg-amber-400/15 shadow-[0_0_20px_rgba(251,191,36,0.35)] pointer-events-none"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
+                {active && (
+                  <span className="relative z-10 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] animate-pulse" />
+                )}
+                <span className="relative z-10">{item.label}</span>
               </Link>
             );
           })}
         </div>
 
-        {/* Right CTA / Menu Toggle */}
-        <div className="flex items-center gap-4">
-          <Button
+        {/* Right CTA Button & Mobile Menu Toggle */}
+        <div className="flex items-center gap-3">
+          <Link
             href="/admissions"
-            variant="secondary"
-            className="hidden sm:inline-flex bg-gradient-to-r from-secondary to-amber-600 hover:from-amber-600 hover:to-secondary border-none shadow-md hover:shadow-lg shadow-secondary/15 hover:shadow-secondary/25 transition-all duration-300 font-bold uppercase tracking-wider text-[11px] py-2.5 px-5 rounded-2xl cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider py-2.5 px-5 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:shadow-[0_0_30px_rgba(245,158,11,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 border border-amber-300/50"
           >
-            Admissions Open
-          </Button>
+            <Sparkles className="w-3.5 h-3.5 text-slate-950 animate-bounce" />
+            <span>Admissions Open</span>
+          </Link>
 
           {/* Mobile Menu Toggle Button */}
           <button
             onClick={onToggleMobileMenu}
-            className={`lg:hidden p-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
-              isNavbarLight
-                ? "bg-white/10 hover:bg-white/20 text-white"
-                : "bg-slate-100 hover:bg-primary/5 text-slate-700 hover:text-primary"
-            }`}
+            className="lg:hidden p-2.5 rounded-full bg-slate-900/90 border border-amber-400/40 text-amber-300 hover:text-white hover:bg-amber-400/20 cursor-pointer transition-all duration-200 shadow-md"
             aria-label="Toggle Navigation Menu"
           >
             {isMobileMenuOpen ? (
-              <HiX className="w-6 h-6" />
+              <HiX className="w-5 h-5" />
             ) : (
-              <HiMenuAlt3 className="w-6 h-6" />
+              <HiMenuAlt3 className="w-5 h-5" />
             )}
           </button>
         </div>
-      </Container>
+      </div>
     </nav>
   );
 }
+

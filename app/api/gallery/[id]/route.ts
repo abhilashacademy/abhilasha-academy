@@ -10,15 +10,19 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    try {
-      await connectToDatabase();
-      if (mongoose.Types.ObjectId.isValid(id)) {
-        const item = await Gallery.findById(id);
-        if (item) {
-          return NextResponse.json({ item });
-        }
-      }
-    } catch (e) {}
+    await connectToDatabase();
+
+    let item = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      item = await Gallery.findById(id);
+    }
+    if (!item) {
+      item = await Gallery.findOne({ _id: id });
+    }
+
+    if (item) {
+      return NextResponse.json({ item });
+    }
 
     return NextResponse.json(
       { error: "Gallery item not found" },
@@ -41,35 +45,37 @@ export async function PUT(
 
     if (!decoded) {
       return NextResponse.json(
-        { error: "Unauthorized. Please log in." },
+        { error: "Unauthorized. Please log in as admin." },
         { status: 401 }
       );
     }
 
     const { id } = await params;
-    const { title, category, src, alt } = await request.json();
+    const body = await request.json();
 
     try {
       await connectToDatabase();
-      if (mongoose.Types.ObjectId.isValid(id)) {
-        const item = await Gallery.findById(id);
-        if (item) {
-          if (title) item.title = title;
-          if (category) item.category = category;
-          if (src) item.src = src;
-          if (alt) item.alt = alt;
+      let updatedItem = null;
 
-          await item.save();
-          return NextResponse.json({ message: "Gallery item updated successfully", item });
-        }
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        updatedItem = await Gallery.findByIdAndUpdate(id, { $set: body }, { new: true });
+      } else {
+        updatedItem = await Gallery.findOneAndUpdate({ _id: id }, { $set: body }, { new: true });
       }
-    } catch (e) {}
+
+      if (updatedItem) {
+        return NextResponse.json({ message: "Gallery item updated successfully", item: updatedItem });
+      }
+    } catch (dbErr) {
+      console.warn("DB update error for gallery item:", dbErr);
+    }
 
     return NextResponse.json({
       message: "Gallery item updated successfully",
-      item: { _id: id, title, category, src, alt }
+      item: { _id: id, ...body }
     });
   } catch (error: any) {
+    console.error("PUT Gallery Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to update gallery item" },
       { status: 500 }
@@ -86,7 +92,7 @@ export async function DELETE(
 
     if (!decoded) {
       return NextResponse.json(
-        { error: "Unauthorized. Please log in." },
+        { error: "Unauthorized. Please log in as admin." },
         { status: 401 }
       );
     }
@@ -97,14 +103,20 @@ export async function DELETE(
       await connectToDatabase();
       if (mongoose.Types.ObjectId.isValid(id)) {
         await Gallery.findByIdAndDelete(id);
+      } else {
+        await Gallery.deleteOne({ _id: id });
       }
-    } catch (e) {}
+    } catch (dbErr) {
+      console.warn("DB delete error for gallery item:", dbErr);
+    }
 
     return NextResponse.json({ message: "Gallery item deleted successfully", id });
   } catch (error: any) {
+    console.error("DELETE Gallery Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to delete gallery item" },
       { status: 500 }
     );
   }
 }
+

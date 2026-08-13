@@ -10,15 +10,19 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    try {
-      await connectToDatabase();
-      if (mongoose.Types.ObjectId.isValid(id)) {
-        const post = await Post.findById(id);
-        if (post) {
-          return NextResponse.json({ post });
-        }
-      }
-    } catch (e) {}
+    await connectToDatabase();
+
+    let post = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      post = await Post.findById(id);
+    }
+    if (!post) {
+      post = await Post.findOne({ _id: id });
+    }
+
+    if (post) {
+      return NextResponse.json({ post });
+    }
 
     return NextResponse.json(
       { error: "Post not found" },
@@ -41,38 +45,37 @@ export async function PUT(
 
     if (!decoded) {
       return NextResponse.json(
-        { error: "Unauthorized. Please log in." },
+        { error: "Unauthorized. Please log in as admin." },
         { status: 401 }
       );
     }
 
     const { id } = await params;
-    const { title, summary, content, category, date, image, author } = await request.json();
+    const body = await request.json();
 
     try {
       await connectToDatabase();
-      if (mongoose.Types.ObjectId.isValid(id)) {
-        const post = await Post.findById(id);
-        if (post) {
-          if (title) post.title = title;
-          if (summary) post.summary = summary;
-          if (content) post.content = content;
-          if (category) post.category = category;
-          if (date) post.date = date;
-          if (image) post.image = image;
-          if (author) post.author = author;
+      let updatedPost = null;
 
-          await post.save();
-          return NextResponse.json({ message: "Post updated successfully", post });
-        }
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        updatedPost = await Post.findByIdAndUpdate(id, { $set: body }, { new: true });
+      } else {
+        updatedPost = await Post.findOneAndUpdate({ _id: id }, { $set: body }, { new: true });
       }
-    } catch (e) {}
+
+      if (updatedPost) {
+        return NextResponse.json({ message: "Post updated successfully", post: updatedPost });
+      }
+    } catch (dbErr) {
+      console.warn("DB update error for post:", dbErr);
+    }
 
     return NextResponse.json({
       message: "Post updated successfully",
-      post: { _id: id, title, summary, content, category, date, image, author }
+      post: { _id: id, ...body }
     });
   } catch (error: any) {
+    console.error("PUT Post Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to update post" },
       { status: 500 }
@@ -89,7 +92,7 @@ export async function DELETE(
 
     if (!decoded) {
       return NextResponse.json(
-        { error: "Unauthorized. Please log in." },
+        { error: "Unauthorized. Please log in as admin." },
         { status: 401 }
       );
     }
@@ -100,14 +103,20 @@ export async function DELETE(
       await connectToDatabase();
       if (mongoose.Types.ObjectId.isValid(id)) {
         await Post.findByIdAndDelete(id);
+      } else {
+        await Post.deleteOne({ _id: id });
       }
-    } catch (e) {}
+    } catch (dbErr) {
+      console.warn("DB delete error for post:", dbErr);
+    }
 
     return NextResponse.json({ message: "Post deleted successfully", id });
   } catch (error: any) {
+    console.error("DELETE Post Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to delete post" },
       { status: 500 }
     );
   }
 }
+

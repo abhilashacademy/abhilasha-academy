@@ -16,24 +16,35 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { status } = body;
 
     try {
       await connectToDatabase();
+      let updatedContact = null;
+
       if (mongoose.Types.ObjectId.isValid(id)) {
-        const updatedContact = await Contact.findByIdAndUpdate(
+        updatedContact = await Contact.findByIdAndUpdate(
           id,
-          { status },
+          { $set: body },
           { new: true }
         );
-        if (updatedContact) {
-          return NextResponse.json({ message: "Status updated successfully", contact: updatedContact });
-        }
+      } else {
+        updatedContact = await Contact.findOneAndUpdate(
+          { _id: id },
+          { $set: body },
+          { new: true }
+        );
       }
-    } catch (e) {}
 
-    return NextResponse.json({ message: "Status updated successfully", contact: { _id: id, status } });
+      if (updatedContact) {
+        return NextResponse.json({ message: "Status updated successfully", contact: updatedContact });
+      }
+    } catch (dbErr) {
+      console.warn("DB update error for contact:", dbErr);
+    }
+
+    return NextResponse.json({ message: "Status updated successfully", contact: { _id: id, ...body } });
   } catch (error: any) {
+    console.error("PATCH Contact Error:", error);
     return NextResponse.json({ error: error.message || "Failed to update inquiry" }, { status: 500 });
   }
 }
@@ -54,11 +65,17 @@ export async function DELETE(
       await connectToDatabase();
       if (mongoose.Types.ObjectId.isValid(id)) {
         await Contact.findByIdAndDelete(id);
+      } else {
+        await Contact.deleteOne({ _id: id });
       }
-    } catch (e) {}
+    } catch (dbErr) {
+      console.warn("DB delete error for contact:", dbErr);
+    }
 
-    return NextResponse.json({ message: "Inquiry deleted successfully" });
+    return NextResponse.json({ message: "Inquiry deleted successfully", id });
   } catch (error: any) {
+    console.error("DELETE Contact Error:", error);
     return NextResponse.json({ error: error.message || "Failed to delete inquiry" }, { status: 500 });
   }
 }
+

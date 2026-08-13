@@ -18,13 +18,15 @@ export async function POST(request: Request) {
     }
 
     let cleanEmail = email.toLowerCase().trim();
-    if (cleanEmail === "admin") {
-      cleanEmail = "admin@abhilasha.org";
+    if (cleanEmail === "admin" || cleanEmail === "admin@abhilasha.org") {
+      cleanEmail = "abhilasha558@gmail.com";
     }
 
     const cleanPassword = password.trim();
     const isDefaultAdminCreds =
-      (cleanEmail === "admin@abhilasha.org" || cleanEmail === "admin") &&
+      (cleanEmail === "abhilasha558@gmail.com" ||
+       cleanEmail === "admin@abhilasha.org" ||
+       cleanEmail === "admin") &&
       (cleanPassword === "admin123" || cleanPassword === "adminpassword123");
 
     let user: any = null;
@@ -33,16 +35,18 @@ export async function POST(request: Request) {
     try {
       await connectToDatabase();
 
-      user = await User.findOne({ email: cleanEmail });
+      user = await User.findOne({
+        email: { $in: [cleanEmail, "abhilasha558@gmail.com", "admin@abhilasha.org"] },
+      });
 
       // Auto-create default admin if missing or if no user exists in DB
-      if (!user && (cleanEmail === "admin@abhilasha.org" || (await User.countDocuments()) === 0)) {
+      if (!user && (cleanEmail === "abhilasha558@gmail.com" || cleanEmail === "admin@abhilasha.org" || (await User.countDocuments()) === 0)) {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash("admin123", salt);
         user = await User.create({
           name: "Super Administrator",
-          email: "admin@abhilasha.org",
-          mobile: "9876543210",
+          email: "abhilasha558@gmail.com",
+          mobile: "+91 9956789374",
           password: hashedPassword,
         });
       }
@@ -62,6 +66,7 @@ export async function POST(request: Request) {
         try {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(cleanPassword, salt);
+          user.email = "abhilasha558@gmail.com";
           await user.save();
         } catch (e) {}
         authenticated = true;
@@ -71,15 +76,15 @@ export async function POST(request: Request) {
       user = {
         _id: "admin-default-id",
         name: "Super Administrator",
-        email: "admin@abhilasha.org",
-        mobile: "9876543210",
+        email: "abhilasha558@gmail.com",
+        mobile: "+91 9956789374",
       };
       authenticated = true;
     }
 
     if (!authenticated) {
       return NextResponse.json(
-        { error: "Invalid email or password. Use email: admin@abhilasha.org and password: admin123" },
+        { error: "Invalid email or password. Use email: abhilasha558@gmail.com and password: admin123" },
         { status: 401 }
       );
     }
@@ -88,8 +93,8 @@ export async function POST(request: Request) {
     const tokenPayload = {
       id: user._id || "admin-default-id",
       name: user.name || "Super Administrator",
-      email: user.email || "admin@abhilasha.org",
-      mobile: user.mobile || "9876543210",
+      email: user.email || "abhilasha558@gmail.com",
+      mobile: user.mobile || "+91 9956789374",
     };
 
     const token = signToken(tokenPayload);
@@ -121,3 +126,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

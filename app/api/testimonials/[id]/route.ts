@@ -10,15 +10,19 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    try {
-      await connectToDatabase();
-      if (mongoose.Types.ObjectId.isValid(id)) {
-        const item = await Testimonial.findById(id);
-        if (item) {
-          return NextResponse.json({ testimonial: item });
-        }
-      }
-    } catch (e) {}
+    await connectToDatabase();
+
+    let item = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      item = await Testimonial.findById(id);
+    }
+    if (!item) {
+      item = await Testimonial.findOne({ _id: id });
+    }
+
+    if (item) {
+      return NextResponse.json({ testimonial: item });
+    }
 
     return NextResponse.json(
       { error: "Testimonial not found" },
@@ -47,30 +51,31 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const { name, role, text, rating, image } = await request.json();
+    const body = await request.json();
 
     try {
       await connectToDatabase();
-      if (mongoose.Types.ObjectId.isValid(id)) {
-        const item = await Testimonial.findById(id);
-        if (item) {
-          if (name) item.name = name.trim();
-          if (role) item.role = role.trim();
-          if (text) item.text = text.trim();
-          if (rating !== undefined) item.rating = Number(rating);
-          if (image) item.image = image.trim();
+      let updatedItem = null;
 
-          await item.save();
-          return NextResponse.json({ message: "Testimonial updated successfully", testimonial: item });
-        }
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        updatedItem = await Testimonial.findByIdAndUpdate(id, { $set: body }, { new: true });
+      } else {
+        updatedItem = await Testimonial.findOneAndUpdate({ _id: id }, { $set: body }, { new: true });
       }
-    } catch (e) {}
+
+      if (updatedItem) {
+        return NextResponse.json({ message: "Testimonial updated successfully", testimonial: updatedItem });
+      }
+    } catch (dbErr) {
+      console.warn("DB update error for testimonial:", dbErr);
+    }
 
     return NextResponse.json({
       message: "Testimonial update recorded successfully",
-      testimonial: { _id: id, name, role, text, rating, image }
+      testimonial: { _id: id, ...body }
     });
   } catch (error: any) {
+    console.error("PUT Testimonial Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to update testimonial" },
       { status: 500 }
@@ -98,14 +103,20 @@ export async function DELETE(
       await connectToDatabase();
       if (mongoose.Types.ObjectId.isValid(id)) {
         await Testimonial.findByIdAndDelete(id);
+      } else {
+        await Testimonial.deleteOne({ _id: id });
       }
-    } catch (e) {}
+    } catch (dbErr) {
+      console.warn("DB delete error for testimonial:", dbErr);
+    }
 
     return NextResponse.json({ message: "Testimonial deleted successfully", id });
   } catch (error: any) {
+    console.error("DELETE Testimonial Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to delete testimonial" },
       { status: 500 }
     );
   }
 }
+

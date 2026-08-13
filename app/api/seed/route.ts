@@ -21,14 +21,16 @@ async function runSeed() {
   let adminSeeded = false;
 
   // Seed Admin User
-  const userCount = await User.countDocuments();
-  if (userCount === 0) {
+  const adminUser = await User.findOne({
+    email: { $in: ["abhilasha558@gmail.com", "admin@abhilasha.org"] },
+  });
+  if (!adminUser) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash("admin123", salt);
     await User.create({
       name: "Super Administrator",
-      email: "admin@abhilasha.org",
-      mobile: "9876543210",
+      email: "abhilasha558@gmail.com",
+      mobile: "+91 9956789374",
       password: hashedPassword,
     });
     adminSeeded = true;

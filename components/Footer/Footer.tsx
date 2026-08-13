@@ -110,31 +110,16 @@ export default function Footer() {
               Quick Links
               <span className="absolute bottom-0 left-0 w-8 h-[2px] bg-secondary rounded-full" />
             </h4>
-             <ul className="flex flex-col gap-3 text-sm">
-              {navItems.map((item) => {
-                if (item.subItems) {
-                  return (
-                    <React.Fragment key={item.label}>
-                      {item.subItems.map((sub) => (
-                        <li key={sub.label}>
-                          <Link
-                            href={sub.href}
-                            className="hover:text-white hover:pl-1 transition-all duration-200"
-                          >
-                            {sub.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </React.Fragment>
-                  );
-                }
+            <ul className="flex flex-col gap-3 text-sm">
+              {navItems.slice(0, 7).map((item) => {
                 return (
                   <li key={item.label}>
                     <Link
                       href={item.href}
-                      className="hover:text-white hover:pl-1 transition-all duration-200"
+                      className="hover:text-amber-300 hover:pl-1.5 transition-all duration-200 flex items-center gap-2 group text-slate-400 font-medium"
                     >
-                      {item.label}
+                      <span className="w-1.5 h-1.5 rounded-full bg-secondary group-hover:bg-amber-400 group-hover:scale-125 transition-all shrink-0" />
+                      <span>{item.label}</span>
                     </Link>
                   </li>
                 );

@@ -149,11 +149,16 @@ export default function AdminDashboardPage() {
   const [uploadingPostImage, setUploadingPostImage] = useState(false);
   const [uploadingGalleryImage, setUploadingGalleryImage] = useState(false);
 
+  // Helper for admin auth header
+  const getAuthHeaders = (): Record<string, string> => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   // Fetch all initial data
   const fetchData = async () => {
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
-      const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+      const authHeaders = getAuthHeaders();
 
       // 1. Verify admin
       const meRes = await fetch("/api/auth/me", { headers: authHeaders });
@@ -164,26 +169,26 @@ export default function AdminDashboardPage() {
       const meData = await meRes.json();
       setAdmin(meData.user);
 
-      const delPostIds: string[] = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("deleted_post_ids") || "[]") : [];
-      const delGalleryIds: string[] = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("deleted_gallery_ids") || "[]") : [];
-      const delTestimonialIds: string[] = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("deleted_testimonial_ids") || "[]") : [];
-
       // 2. Fetch posts
       const postsRes = await fetch("/api/posts", { headers: authHeaders });
-      const postsData = await postsRes.json();
-      setPosts((postsData.posts || []).filter((p: any) => !delPostIds.includes(String(p._id || p.id))));
+      if (postsRes.ok) {
+        const postsData = await postsRes.json();
+        setPosts(postsData.posts || []);
+      }
 
       // 3. Fetch gallery items
       const galleryRes = await fetch("/api/gallery", { headers: authHeaders });
-      const galleryData = await galleryRes.json();
-      setGallery((galleryData.items || []).filter((g: any) => !delGalleryIds.includes(String(g._id || g.id))));
+      if (galleryRes.ok) {
+        const galleryData = await galleryRes.json();
+        setGallery(galleryData.items || []);
+      }
 
       // 4. Fetch real admissions inquiries
       const admissionsRes = await fetch("/api/admissions", { headers: authHeaders });
       if (admissionsRes.ok) {
         const admData = await admissionsRes.json();
         const mapped = (admData.admissions || []).map((a: any) => ({
-          id: a._id,
+          id: a._id || a.id,
           studentName: a.studentName,
           parentName: a.parentName || "-",
           classApplied: a.targetClass,
@@ -197,24 +202,24 @@ export default function AdminDashboardPage() {
       }
 
       // 5. Fetch contact inquiries
-      const contactRes = await fetch("/api/contact");
+      const contactRes = await fetch("/api/contact", { headers: authHeaders });
       if (contactRes.ok) {
         const contactData = await contactRes.json();
         setContacts(contactData.contacts || []);
       }
 
       // 6. Fetch downloadable resources
-      const resourceRes = await fetch("/api/resources");
+      const resourceRes = await fetch("/api/resources", { headers: authHeaders });
       if (resourceRes.ok) {
         const resourceData = await resourceRes.json();
         setResources(resourceData.resources || []);
       }
 
       // 7. Fetch testimonials
-      const testimonialsRes = await fetch("/api/testimonials");
+      const testimonialsRes = await fetch("/api/testimonials", { headers: authHeaders });
       if (testimonialsRes.ok) {
         const testimonialsData = await testimonialsRes.json();
-        setTestimonials((testimonialsData.testimonials || []).filter((t: any) => !delTestimonialIds.includes(String(t._id || t.id))));
+        setTestimonials(testimonialsData.testimonials || []);
       }
     } catch (error) {
       showToast("error", "Failed to retrieve dashboard details.");
@@ -238,12 +243,12 @@ export default function AdminDashboardPage() {
   const handleSeedDatabase = async () => {
     setSeeding(true);
     try {
-      const res = await fetch("/api/seed", { method: "POST" });
+      const res = await fetch("/api/seed", { method: "POST", headers: getAuthHeaders() });
       const data = await res.json();
       if (res.ok) {
         showToast(
           "success",
-          `Seeded successfully! Added ${data.seeded.posts} posts and ${data.seeded.gallery} photos.`
+          `Seeded successfully! Updated database records.`
         );
         fetchData();
       } else {
@@ -276,36 +281,40 @@ export default function AdminDashboardPage() {
   const handleDeletePost = async (id: string) => {
     if (!confirm("Are you sure you want to delete this news article?")) return;
     try {
-      const delPostIds: string[] = JSON.parse(localStorage.getItem("deleted_post_ids") || "[]");
-      if (!delPostIds.includes(String(id))) {
-        delPostIds.push(String(id));
-        localStorage.setItem("deleted_post_ids", JSON.stringify(delPostIds));
+      const res = await fetch(`/api/posts/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        setPosts((prev) => prev.filter((p: any) => String(p._id || p.id) !== String(id)));
+        showToast("success", "Post deleted successfully!");
+      } else {
+        const data = await res.json();
+        showToast("error", data.error || "Failed to delete post.");
       }
-      const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
-      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-
-      await fetch(`/api/posts/${id}`, { method: "DELETE", headers });
-    } catch (err) {}
-    setPosts((prev) => prev.filter((p: any) => String(p._id || p.id) !== String(id)));
-    showToast("success", "Post deleted successfully!");
+    } catch (err) {
+      showToast("error", "Network error deleting post.");
+    }
   };
 
   // Delete Gallery item trigger
   const handleDeleteGallery = async (id: string) => {
     if (!confirm("Are you sure you want to delete this photo?")) return;
     try {
-      const delGalleryIds: string[] = JSON.parse(localStorage.getItem("deleted_gallery_ids") || "[]");
-      if (!delGalleryIds.includes(String(id))) {
-        delGalleryIds.push(String(id));
-        localStorage.setItem("deleted_gallery_ids", JSON.stringify(delGalleryIds));
+      const res = await fetch(`/api/gallery/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        setGallery((prev) => prev.filter((g: any) => String(g._id || g.id) !== String(id)));
+        showToast("success", "Photo deleted successfully!");
+      } else {
+        const data = await res.json();
+        showToast("error", data.error || "Failed to delete photo.");
       }
-      const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
-      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-
-      await fetch(`/api/gallery/${id}`, { method: "DELETE", headers });
-    } catch (err) {}
-    setGallery((prev) => prev.filter((g: any) => String(g._id || g.id) !== String(id)));
-    showToast("success", "Photo deleted successfully!");
+    } catch (err) {
+      showToast("error", "Network error deleting photo.");
+    }
   };
 
   // Update Admissions Status trigger
@@ -313,7 +322,10 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(`/api/admissions/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
@@ -334,7 +346,10 @@ export default function AdminDashboardPage() {
   const handleDeleteAdmission = async (id: string) => {
     if (!confirm("Are you sure you want to delete this admission record?")) return;
     try {
-      const res = await fetch(`/api/admissions/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admissions/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
       if (res.ok) {
         showToast("success", "Admission record deleted successfully.");
         setAdmissions((prev) => prev.filter((adm) => adm.id !== id));
@@ -386,7 +401,10 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify(postForm),
       });
       const data = await res.json();
@@ -436,7 +454,10 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify(galleryForm),
       });
       const data = await res.json();
@@ -489,7 +510,10 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify(testimonialForm),
       });
       const data = await res.json();
@@ -509,18 +533,20 @@ export default function AdminDashboardPage() {
   const handleDeleteTestimonial = async (id: string) => {
     if (!confirm("Are you sure you want to delete this testimonial?")) return;
     try {
-      const delTestimonialIds: string[] = JSON.parse(localStorage.getItem("deleted_testimonial_ids") || "[]");
-      if (!delTestimonialIds.includes(String(id))) {
-        delTestimonialIds.push(String(id));
-        localStorage.setItem("deleted_testimonial_ids", JSON.stringify(delTestimonialIds));
+      const res = await fetch(`/api/testimonials/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        setTestimonials((prev) => prev.filter((t: any) => String(t._id || t.id) !== String(id)));
+        showToast("success", "Testimonial removed.");
+      } else {
+        const data = await res.json();
+        showToast("error", data.error || "Failed to remove testimonial.");
       }
-      const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
-      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-
-      await fetch(`/api/testimonials/${id}`, { method: "DELETE", headers });
-    } catch (err) {}
-    setTestimonials((prev) => prev.filter((t: any) => String(t._id || t.id) !== String(id)));
-    showToast("success", "Testimonial removed.");
+    } catch (err) {
+      showToast("error", "Network error deleting testimonial.");
+    }
   };
 
   const handleTestimonialImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -534,6 +560,7 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
+        headers: getAuthHeaders(),
         body: formData,
       });
       const data = await res.json();
@@ -562,6 +589,7 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
+        headers: getAuthHeaders(),
         body: formData,
       });
 
@@ -590,6 +618,7 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
+        headers: getAuthHeaders(),
         body: formData,
       });
 
@@ -610,17 +639,20 @@ export default function AdminDashboardPage() {
   const handleDeleteContact = async (id: string) => {
     if (!confirm("Are you sure you want to delete this contact message?")) return;
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
-      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-
-      await fetch(`/api/contact/${id}`, { method: "DELETE", headers });
-      setContacts((prev) => prev.filter((c: any) => c._id !== id));
-      setSelectedContactModal(null);
-      showToast("success", "Contact message deleted.");
+      const res = await fetch(`/api/contact/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        setContacts((prev) => prev.filter((c: any) => (c._id || c.id) !== id));
+        setSelectedContactModal(null);
+        showToast("success", "Contact message deleted.");
+      } else {
+        const data = await res.json();
+        showToast("error", data.error || "Failed to delete message.");
+      }
     } catch (err) {
-      setContacts((prev) => prev.filter((c: any) => c._id !== id));
-      setSelectedContactModal(null);
-      showToast("success", "Contact message removed.");
+      showToast("error", "Network error deleting message.");
     }
   };
 
@@ -635,6 +667,7 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
+        headers: getAuthHeaders(),
         body: formData,
       });
 
@@ -664,15 +697,12 @@ export default function AdminDashboardPage() {
     }
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      };
-
       const res = await fetch("/api/resources", {
         method: "POST",
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify(resourceForm),
       });
 
@@ -693,15 +723,19 @@ export default function AdminDashboardPage() {
   const handleDeleteResource = async (id: string) => {
     if (!confirm("Are you sure you want to delete this resource document?")) return;
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
-      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-
-      await fetch(`/api/resources/${id}`, { method: "DELETE", headers });
-      setResources((prev) => prev.filter((r: any) => r._id !== id));
-      showToast("success", "Resource document deleted.");
+      const res = await fetch(`/api/resources/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        setResources((prev) => prev.filter((r: any) => (r._id || r.id) !== id));
+        showToast("success", "Resource document deleted.");
+      } else {
+        const data = await res.json();
+        showToast("error", data.error || "Failed to delete resource.");
+      }
     } catch (err) {
-      setResources((prev) => prev.filter((r: any) => r._id !== id));
-      showToast("success", "Resource document removed.");
+      showToast("error", "Network error deleting resource.");
     }
   };
 

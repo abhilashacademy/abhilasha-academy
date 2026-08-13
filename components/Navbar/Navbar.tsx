@@ -17,7 +17,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
+      if (window.scrollY > 30) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
@@ -37,19 +37,23 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 w-full z-45 flex flex-col">
-      {/* Top Bar for contact & socials */}
-      <TopBar />
+    <header className="fixed top-0 left-0 right-0 w-full z-45 flex flex-col pointer-events-none">
+      <div className="pointer-events-auto">
+        <TopBar />
+      </div>
 
-      {/* Main Navbar */}
-      <DesktopNav
-        onToggleMobileMenu={handleToggleMobileMenu}
-        isMobileMenuOpen={isMobileMenuOpen}
-        isScrolled={isScrolled}
-      />
+      <div className="pointer-events-auto">
+        <DesktopNav
+          onToggleMobileMenu={handleToggleMobileMenu}
+          isMobileMenuOpen={isMobileMenuOpen}
+          isScrolled={isScrolled}
+        />
+      </div>
 
-      {/* Mobile Fullscreen Navigation Menu */}
-      <MobileNav isOpen={isMobileMenuOpen} onClose={handleCloseMobileMenu} />
+      <div className="pointer-events-auto">
+        <MobileNav isOpen={isMobileMenuOpen} onClose={handleCloseMobileMenu} />
+      </div>
     </header>
   );
 }
+

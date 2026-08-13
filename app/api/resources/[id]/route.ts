@@ -20,14 +20,20 @@ export async function DELETE(
       await connectToDatabase();
       if (mongoose.Types.ObjectId.isValid(id)) {
         await Resource.findByIdAndDelete(id);
+      } else {
+        await Resource.deleteOne({ _id: id });
       }
-    } catch (e) {}
+    } catch (dbErr) {
+      console.warn("DB delete error for resource:", dbErr);
+    }
 
-    return NextResponse.json({ message: "Resource document deleted successfully" });
+    return NextResponse.json({ message: "Resource document deleted successfully", id });
   } catch (error: any) {
+    console.error("DELETE Resource Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to delete resource document" },
       { status: 500 }
     );
   }
 }
+

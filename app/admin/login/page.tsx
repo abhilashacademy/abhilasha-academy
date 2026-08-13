@@ -114,7 +114,7 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@abhilasha.org"
+                placeholder="abhilasha558@gmail.com"
                 className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 pl-11 text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all duration-300 placeholder:text-slate-600"
                 required
               />
@@ -158,7 +158,7 @@ export default function AdminLoginPage() {
         <div className="mt-8 pt-4 border-t border-white/5 text-center text-xs text-slate-400 flex flex-col gap-1.5">
           <span className="font-bold text-rose-400">Default Admin Credentials:</span>
           <span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 font-mono text-slate-200 text-[11px] inline-block mx-auto">
-            Email: admin@abhilasha.org | Password: admin123
+            Email: abhilasha558@gmail.com | Password: admin123
           </span>
         </div>
       </motion.div>
