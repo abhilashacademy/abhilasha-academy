@@ -18,8 +18,8 @@ export default function AnnouncementPopup() {
   const [settings, setSettings] = useState<PopupSettings | null>(null);
 
   useEffect(() => {
-    // If on admin routes (/admin), do not fetch or display popup
-    if (pathname?.startsWith("/admin")) {
+    // Show popup ONLY on the home page ("/")
+    if (pathname !== "/") {
       return;
     }
 
@@ -31,7 +31,7 @@ export default function AnnouncementPopup() {
           const siteSettings: PopupSettings = data.settings || {};
           setSettings(siteSettings);
 
-          // If popup status is ON (enabled), show popup immediately on website load
+          // If popup status is ON (enabled), show popup immediately on home page load
           if (siteSettings.popupEnabled) {
             setIsOpen(true);
           }
@@ -48,8 +48,8 @@ export default function AnnouncementPopup() {
     setIsOpen(false);
   };
 
-  // Never render popup on admin panel or if popup is disabled
-  if (pathname?.startsWith("/admin") || !settings || !settings.popupEnabled) {
+  // Only render popup on home page ("/") if enabled
+  if (pathname !== "/" || !settings || !settings.popupEnabled) {
     return null;
   }
 

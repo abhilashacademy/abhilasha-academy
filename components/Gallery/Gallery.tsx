@@ -115,23 +115,25 @@ export default function Gallery({ limit = 9, showViewAll = true }: GalleryProps)
         </AnimatedSection>
 
         {/* Filter Categories Bar */}
-        <AnimatedSection variant="fade-up" className="flex justify-center flex-wrap gap-2.5 mb-12">
-          {categoriesList.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => {
-                setSelectedCat(cat.value);
-                closeLightbox();
-              }}
-              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shrink-0 ${
-                selectedCat === cat.value
-                  ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
-                  : "bg-white text-slate-700 hover:text-primary hover:bg-slate-50 border-2 border-slate-300 shadow-sm hover:border-slate-400"
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+        <AnimatedSection variant="fade-up" className="mb-12">
+          <div className="flex flex-wrap items-center justify-center gap-3.5 sm:gap-4 md:gap-5">
+            {categoriesList.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => {
+                  setSelectedCat(cat.value);
+                  closeLightbox();
+                }}
+                className={`px-5 py-2.5 sm:px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shrink-0 ${
+                  selectedCat === cat.value
+                    ? "bg-primary text-white shadow-md shadow-primary/20"
+                    : "bg-white text-slate-700 hover:text-primary hover:bg-slate-50 border-2 border-slate-300 shadow-sm hover:border-slate-400"
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
         </AnimatedSection>
 
         {/* 9 Images Clean Grid Section (Hover reveals title & category) */}

@@ -130,7 +130,7 @@ export default function AdmissionsPage() {
             subtitle="Enroll Your Child"
             center
           />
-          <p className="text-center text-slate-500 max-w-2xl mx-auto -mt-4 text-sm sm:text-base leading-relaxed">
+          <p className="text-center text-slate-500 max-w-2xl mx-auto -mt-4 text-sm sm:text-base leading-relaxed text-justify">
             Welcome to the admissions portal of Abhilasha Group of Academies. We maintain an open, merit-guided entry protocol for Class 6 to Class 12 applicants across all streams.
           </p>
         </AnimatedSection>
@@ -163,7 +163,7 @@ export default function AdmissionsPage() {
                     <h3 className="font-extrabold text-slate-800 text-lg mb-2.5 group-hover:text-primary transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                    <p className="text-slate-500 text-xs sm:text-sm leading-relaxed text-justify">
                       {item.description}
                     </p>
                   </div>
@@ -220,7 +220,7 @@ export default function AdmissionsPage() {
 
                       {/* Description */}
                       {res.description ? (
-                        <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6">
+                        <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6 text-justify">
                           {res.description}
                         </p>
                       ) : (
@@ -280,7 +280,7 @@ export default function AdmissionsPage() {
                 <FileText className="text-secondary w-6 h-6" />
                 <span>Admission Fee Policy</span>
               </h3>
-              <p className="text-slate-300 text-sm leading-relaxed mb-4">
+              <p className="text-slate-300 text-sm leading-relaxed mb-4 text-justify">
                 Abhilasha Academy has remained committed to value-based, affordable learning since 2010. Our tuition fees are kept structured and reasonable, ensuring high-quality education is accessible to all students.
               </p>
               <div className="flex gap-2 items-center bg-white/5 p-3 rounded-xl text-xs text-amber-200">
@@ -297,7 +297,7 @@ export default function AdmissionsPage() {
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-secondary" />
                 
                 <h3 className="text-2xl font-extrabold text-slate-800 mb-2">Admission Inquiry Form</h3>
-                <p className="text-slate-500 text-xs sm:text-sm mb-8 leading-relaxed">
+                <p className="text-slate-500 text-xs sm:text-sm mb-8 leading-relaxed text-justify">
                   Fill details below to schedule an evaluation or request prospectus packets. Our team will contact you back within 24 hours.
                 </p>
 

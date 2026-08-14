@@ -181,7 +181,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                 {/* Executive Summary Box */}
                 {post.summary && (
                   <div className="p-5 sm:p-6 bg-slate-50/80 border-l-4 border-primary rounded-r-2xl mb-8 shadow-inner">
-                    <p className="text-slate-700 text-sm sm:text-base font-semibold italic leading-relaxed">
+                    <p className="text-slate-700 text-sm sm:text-base font-semibold italic leading-relaxed text-justify">
                       &ldquo;{post.summary}&rdquo;
                     </p>
                   </div>
@@ -200,9 +200,9 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 {/* Article Content Paragraphs */}
-                <div className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed flex flex-col gap-6">
+                <div className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed flex flex-col gap-6 text-justify">
                   {post.content.split("\n\n").map((paragraph, idx) => (
-                    <p key={idx} className="text-slate-700 leading-relaxed font-normal">
+                    <p key={idx} className="text-slate-700 leading-relaxed font-normal text-justify">
                       {paragraph}
                     </p>
                   ))}

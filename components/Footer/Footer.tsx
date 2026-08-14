@@ -83,7 +83,7 @@ export default function Footer() {
               </div>
             </Link>
             
-            <p className="text-sm leading-relaxed text-slate-500">
+            <p className="text-sm leading-relaxed text-slate-500 text-justify">
               Established in 2010, Abhilasha Academy and Maa Durga Abhilasha Inter College deliver value-based, quality UP & CBSE Board education for Classes Nursery to 12th in Hindi & English Medium to help nurture confident future leaders.
             </p>
             

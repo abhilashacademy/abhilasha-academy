@@ -68,7 +68,7 @@ export default function QuickLinks() {
                   <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-primary transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-slate-500 text-sm leading-relaxed mb-6">
+                  <p className="text-slate-500 text-sm leading-relaxed mb-6 text-justify">
                     {item.description}
                   </p>
                 </div>

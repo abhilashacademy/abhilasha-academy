@@ -123,14 +123,14 @@ export default function NewsPage() {
           </div>
 
           {/* Category Chips Below Search Box (Left-aligned with cards) */}
-          <div className="flex items-center flex-wrap justify-start gap-2.5 w-full">
+          <div className="flex items-center flex-wrap justify-start gap-3.5 sm:gap-4 md:gap-5 w-full">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                className={`px-5 py-2.5 sm:px-6 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shrink-0 ${
                   selectedCategory === cat
-                    ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
+                    ? "bg-primary text-white shadow-md shadow-primary/20"
                     : "bg-white text-slate-700 hover:text-primary hover:bg-slate-50 border-2 border-slate-300 shadow-sm hover:border-slate-400"
                 }`}
               >
@@ -209,7 +209,7 @@ export default function NewsPage() {
                         </Link>
 
                         {/* Summary */}
-                        <p className="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-3">
+                        <p className="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-3 text-justify">
                           {item.summary}
                         </p>
                       </div>

@@ -89,7 +89,7 @@ export default function AboutPage() {
                 subtitle="Who We Are"
                 className="mb-4"
               />
-              <div className="text-slate-600 leading-relaxed space-y-4">
+              <div className="text-slate-600 leading-relaxed space-y-4 text-justify">
                 <p>
                   Established in 2010, <strong>Abhilasha Academy</strong> and <strong>Maa Durga Abhilasha Inter College</strong> (Abhilasha Group of Academies) have been committed to providing quality education that is affordable, value-driven, and accessible to every child. Our institutions strive to nurture students into confident, responsible, and compassionate individuals who are prepared to succeed in academics and life.
                 </p>
@@ -127,11 +127,8 @@ export default function AboutPage() {
               </div>
               <div>
                 <h3 className="text-2xl font-extrabold text-slate-800 mb-3">Our Mission</h3>
-                <p className="text-slate-500 leading-relaxed text-sm sm:text-base">
+                <p className="text-slate-500 leading-relaxed text-sm sm:text-base text-justify">
                   Our mission is to deliver holistic education through experienced teachers, modern teaching practices, and a student-centric approach that ensures every learner receives the guidance and attention they deserve. We are committed to promoting academic excellence, strong moral values, leadership qualities, critical thinking, and social responsibility while preparing students to confidently face the opportunities and challenges of the future.
-                </p>
-                <p className="text-slate-500 leading-relaxed text-sm sm:text-base mt-3 italic border-t border-slate-100 pt-3">
-                  Guided by our motto: &ldquo;Where Teaching is Not a Business but an Interest. Hope Sustains Life.&rdquo; we remain dedicated to nurturing young minds with knowledge, integrity, compassion, and excellence, ensuring that every student grows into a capable professional, a responsible citizen, and a person of strong character.
                 </p>
               </div>
             </div>
@@ -145,7 +142,7 @@ export default function AboutPage() {
               </div>
               <div>
                 <h3 className="text-2xl font-extrabold text-slate-800 mb-3">Our Vision</h3>
-                <p className="text-slate-500 leading-relaxed text-sm sm:text-base">
+                <p className="text-slate-500 leading-relaxed text-sm sm:text-base text-justify">
                   We envision becoming one of the most trusted educational institutions in Uttar Pradesh by providing affordable, value-based, and quality education that empowers every student to reach their full potential. We strive to create a learning environment where curiosity is encouraged, creativity is nurtured, discipline is instilled, and every child is inspired to become a lifelong learner.
                 </p>
               </div>
@@ -173,7 +170,7 @@ export default function AboutPage() {
                 <h4 className="font-extrabold text-slate-800 text-lg group-hover:text-primary transition-colors">
                   {diff.title}
                 </h4>
-                <p className="text-slate-500 text-sm leading-relaxed">
+                <p className="text-slate-500 text-sm leading-relaxed text-justify">
                   {diff.desc}
                 </p>
               </div>
@@ -209,7 +206,7 @@ export default function AboutPage() {
               ))}
             </div>
 
-            <p className="text-center text-slate-300 mt-10 max-w-2xl mx-auto text-sm sm:text-base">
+            <p className="text-center text-slate-300 mt-10 max-w-2xl mx-auto text-sm sm:text-base text-justify">
               Together, our institutions continue to work towards creating an environment where learning becomes meaningful, inspiring, and transformative.
             </p>
           </div>
@@ -223,7 +220,7 @@ export default function AboutPage() {
                 title="Achievements & Academic Excellence"
                 subtitle="Nurturing Excellence"
               />
-              <div className="text-slate-600 leading-relaxed space-y-4">
+              <div className="text-slate-600 leading-relaxed space-y-4 text-justify">
                 <p>
                   At Abhilasha Group of Academies, academic excellence has always been the hallmark of our educational journey. Over the years, our students have consistently demonstrated outstanding performance in board examinations, competitive activities, and co-curricular events, bringing pride to the institution and the community.
                 </p>
@@ -300,7 +297,7 @@ export default function AboutPage() {
             </div>
 
             {/* Address message */}
-            <div className="lg:col-span-8 flex flex-col gap-5 leading-relaxed text-slate-300 text-sm sm:text-base">
+            <div className="lg:col-span-8 flex flex-col gap-5 leading-relaxed text-slate-300 text-sm sm:text-base text-justify">
               <div className="flex items-center gap-2 mb-2">
                 <Quote className="text-secondary/30 w-8 h-8 rotate-180 shrink-0" />
                 <span className="text-secondary font-bold text-xs uppercase tracking-widest block">

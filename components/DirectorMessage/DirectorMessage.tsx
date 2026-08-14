@@ -53,7 +53,7 @@ export default function DirectorMessage() {
                     &ldquo;Dear Parents, Students, and Well-Wishers&rdquo;
                   </h3>
 
-                  <p className="text-slate-300 leading-relaxed mb-6 italic text-sm sm:text-base">
+                  <p className="text-slate-300 leading-relaxed mb-6 italic text-sm sm:text-base text-justify">
                     &ldquo;It is my privilege to welcome you to Abhilasha Group of Academies, built on the belief that education is the foundation of a progressive and responsible society. Since our establishment, our mission has been to provide quality education that is affordable, accessible, and focused on the all-round development of every child.&rdquo;
                   </p>
                 </div>
@@ -117,7 +117,7 @@ export default function DirectorMessage() {
                 </div>
 
                 {/* Content */}
-                <div className="p-8 overflow-y-auto flex-grow flex flex-col gap-6 text-slate-600 leading-relaxed text-sm sm:text-base">
+                <div className="p-8 overflow-y-auto flex-grow flex flex-col gap-6 text-slate-600 leading-relaxed text-sm sm:text-base text-justify">
                   <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
                     <div className="relative w-14 h-14 rounded-full overflow-hidden bg-slate-100 shrink-0">
                       <Image

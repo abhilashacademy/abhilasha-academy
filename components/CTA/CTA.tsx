@@ -32,7 +32,7 @@ export default function CTA() {
               </h2>
 
               {/* Description */}
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6 max-w-2xl">
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6 max-w-2xl text-justify">
                 Join Abhilasha Academy and Maa Durga Abhilasha Inter College. Secure quality, value-based state board Hindi Medium education for classes 6 to 12. Register today to secure seats!
               </p>
 

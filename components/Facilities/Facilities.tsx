@@ -106,7 +106,7 @@ export default function Facilities() {
                     <h3 className="text-lg font-bold text-slate-800 mb-2 group-hover:text-primary transition-colors duration-200">
                       {facility.title}
                     </h3>
-                    <p className="text-slate-500 text-sm leading-relaxed">
+                    <p className="text-slate-500 text-sm leading-relaxed text-justify">
                       {facility.description}
                     </p>
                   </div>

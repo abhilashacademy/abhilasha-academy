@@ -211,7 +211,7 @@ function ContactFormAndDetails() {
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-secondary" />
 
             <h3 className="text-2xl font-extrabold text-slate-800 mb-2">Send an Inquiry Message</h3>
-            <p className="text-slate-500 text-xs sm:text-sm mb-8 leading-relaxed">
+            <p className="text-slate-500 text-xs sm:text-sm mb-8 leading-relaxed text-justify">
               If you have queries regarding admissions, syllabus details, or sports coaching, write to us here and our counselors will respond shortly.
             </p>
 

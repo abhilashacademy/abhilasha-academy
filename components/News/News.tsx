@@ -197,7 +197,7 @@ export default function News() {
                       </Link>
 
                       {/* Summary (Only 2 lines description) */}
-                      <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6 line-clamp-2">
+                      <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6 line-clamp-2 text-justify">
                         {item.summary}
                       </p>
                     </div>

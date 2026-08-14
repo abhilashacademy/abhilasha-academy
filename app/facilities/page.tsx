@@ -74,7 +74,7 @@ export default function FacilitiesPage() {
             <h1 className="text-4xl sm:text-5xl font-extrabold text-primary mb-6 tracking-tight">
               School Infrastructure
             </h1>
-            <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
+            <p className="text-slate-500 text-sm sm:text-base leading-relaxed text-justify">
               We take pride in offering high-quality learning assets, verified safety parameters, and recreational facilities to enrich student lives.
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function FacilitiesPage() {
                       </h2>
                     </div>
 
-                    <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
+                    <p className="text-slate-600 leading-relaxed text-sm sm:text-base text-justify">
                       {facility.description}
                     </p>
 
@@ -162,7 +162,7 @@ export default function FacilitiesPage() {
               <h3 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-wide text-secondary mb-4">
                 Our Campus Security Promise
               </h3>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8 text-justify">
                 The safety of our students is of paramount importance. Our entire campus is under constant CCTV surveillance, and gate logs are verified by licensed securities officers.
               </p>
               <Button href="/contact" variant="outline" className="text-white border-white/20 hover:border-white hover:bg-white hover:text-primary">

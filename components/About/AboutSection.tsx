@@ -70,7 +70,7 @@ export default function AboutSection() {
                 className="mb-6"
               />
 
-              <div className="text-slate-600 space-y-4 leading-relaxed mb-8">
+              <div className="text-slate-600 space-y-4 leading-relaxed mb-8 text-justify">
                 <p>
                   Established in 2010, <strong>Abhilasha Academy</strong> and <strong>Maa Durga Abhilasha Inter College (Abhilasha Group of Academies)</strong> have been committed to providing quality education that is affordable, value-driven, and accessible to every child. Our institutions strive to nurture students into confident, responsible, and compassionate individuals who are prepared to succeed in academics and life. The inter college offers UP & CBSE Board education for Classes Nursery to 12th in English & Hindi medium.
                 </p>
@@ -100,7 +100,7 @@ export default function AboutSection() {
                     </div>
                   </div>
                 </div>
-                <p className="text-slate-500 text-xs italic mt-4">
+                <p className="text-slate-500 text-xs italic mt-4 text-justify">
                   Over the years, we have earned the trust of parents by maintaining high academic standards, disciplined learning environments, and a student-first approach.
                 </p>
               </div>

@@ -192,7 +192,7 @@ function DownloadsContent() {
                   <span className="text-amber-500 font-extrabold text-[11px] uppercase tracking-wider block mb-3">
                     {item.category}
                   </span>
-                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6">
+                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6 text-justify">
                     {item.description}
                   </p>
                 </div>
@@ -244,7 +244,7 @@ function DownloadsContent() {
           </div>
           <div>
             <h4 className="font-extrabold text-slate-800 mb-1.5 text-center sm:text-left">Need Physical Prospectus Packages?</h4>
-            <p className="text-slate-500 text-sm leading-relaxed text-center sm:text-left">
+            <p className="text-slate-500 text-sm leading-relaxed text-center sm:text-left text-justify">
               If you face issues downloading digital items, please walk in to the academy admissions office at Gaura, Kaptanganj Basti during office hours (Monday – Saturday: 9:00 AM – 4:00 PM). Parents can receive print materials directly.
             </p>
           </div>

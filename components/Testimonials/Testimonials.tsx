@@ -145,7 +145,7 @@ export default function Testimonials() {
                   </div>
 
                   {/* Review Text */}
-                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4 italic font-medium line-clamp-4">
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4 italic font-medium line-clamp-4 text-justify">
                     &ldquo;{testimonial.text}&rdquo;
                   </p>
 

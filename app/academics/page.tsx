@@ -139,7 +139,7 @@ function AcademicsContent() {
           <h1 className="text-4xl sm:text-5xl font-extrabold text-primary mb-6 tracking-tight">
             Academic Programs & Campus Life
           </h1>
-          <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-500 text-sm sm:text-base leading-relaxed text-justify">
             Discover our educational pathways across different levels, custom learning systems, and programs designed to foster character and brilliance.
           </p>
         </div>
@@ -175,7 +175,7 @@ function AcademicsContent() {
             <h4 className="font-extrabold text-secondary text-base mb-2 uppercase tracking-wide">
               100% Board Results
             </h4>
-            <p className="text-slate-300 text-xs leading-relaxed mb-4">
+            <p className="text-slate-300 text-xs leading-relaxed mb-4 text-justify">
               Consistent pass percentages in Class 10 High School and Class 12 Board exams of the Uttar Pradesh Board.
             </p>
             <Button href="/admissions" variant="secondary" size="sm" className="w-full">
@@ -208,7 +208,7 @@ function AcademicsContent() {
               {/* Description */}
               <div>
                 <h3 className="font-bold text-slate-800 text-lg mb-3">Overview</h3>
-                <p className="text-slate-500 leading-relaxed text-sm sm:text-base">
+                <p className="text-slate-500 leading-relaxed text-sm sm:text-base text-justify">
                   {activeProg.description}
                 </p>
               </div>
@@ -276,7 +276,7 @@ function AcademicsContent() {
               <Clock className="w-6 h-6" />
             </div>
             <h4 className="font-extrabold text-slate-800 text-base">Class Hours</h4>
-            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
+            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed text-justify">
               Regular instructional cycles operate from Monday to Saturday, starting at 9:00 AM and concluding at 4:00 PM for office desks. Core academic classroom schedules are handled term-wise.
             </p>
           </div>
@@ -287,7 +287,7 @@ function AcademicsContent() {
               <Calendar className="w-6 h-6" />
             </div>
             <h4 className="font-extrabold text-slate-800 text-base">Regular Assessments</h4>
-            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
+            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed text-justify">
               Periodic reviews and mock assessments are held every month. Half-yearly examinations happen in October, followed by final annual reviews in February/March.
             </p>
           </div>
@@ -298,7 +298,7 @@ function AcademicsContent() {
               <Award className="w-6 h-6" />
             </div>
             <h4 className="font-extrabold text-slate-800 text-base">Board Registration</h4>
-            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
+            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed text-justify">
               Registration paperwork for Class 10 (High School) and Class 12 (Intermediate) Board examinations are handled systematically in accordance with state guidelines.
             </p>
           </div>
