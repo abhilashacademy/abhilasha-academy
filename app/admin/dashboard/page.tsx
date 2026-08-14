@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FaPlus, FaTrash, FaEdit, FaSignOutAlt, FaImage, FaNewspaper,
-  FaDatabase, FaCheck, FaTimes, FaSearch, FaUser, FaExternalLinkAlt, FaBars, FaChartLine, FaCog, FaGraduationCap, FaUpload, FaSpinner, FaEnvelope, FaEye, FaFileDownload, FaFilePdf, FaStar, FaSmile, FaQuoteLeft, FaBuilding, FaBullhorn
+  FaPlus, FaTrash, FaEdit, FaSignOutAlt, FaImage, FaNewspaper, FaImages,
+  FaDatabase, FaCheck, FaTimes, FaSearch, FaUser, FaExternalLinkAlt, FaBars, FaChartLine, FaCog, FaGraduationCap, FaUpload, FaSpinner, FaEnvelope, FaEye, FaFileDownload, FaFilePdf, FaStar, FaSmile, FaQuoteLeft, FaBuilding, FaBullhorn, FaTrophy, FaAward, FaSchool, FaUserGraduate
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi2";
 
@@ -25,6 +25,20 @@ interface TestimonialItem {
   image: string;
 }
 
+interface TopperItem {
+  _id: string;
+  name: string;
+  year: string;
+  board: string;
+  rank: number;
+  rankType: string;
+  percentage: number;
+  photo: string;
+  category: "General Rank Holder" | "Subject Topper";
+  subject?: string;
+  marks?: number;
+}
+
 interface PostItem {
   _id: string;
   title: string;
@@ -34,6 +48,9 @@ interface PostItem {
   date: string;
   image: string;
   author: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
 }
 
 interface GalleryItem {
@@ -73,10 +90,20 @@ export default function AdminDashboardPage() {
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
   const [facilities, setFacilities] = useState<FacilityItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"overview" | "posts" | "gallery" | "testimonials" | "facilities" | "admissions" | "contacts" | "resources" | "settings">("overview");
+  const [toppers, setToppers] = useState<TopperItem[]>([]);
+  const [activeTab, setActiveTab] = useState<"overview" | "posts" | "gallery" | "testimonials" | "facilities" | "toppers" | "admissions" | "contacts" | "resources" | "seo" | "settings">("overview");
   const [loading, setLoading] = useState(true);
-  const [seeding, setSeeding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Page SEO State
+  const [seoMap, setSeoMap] = useState<Record<string, any>>({});
+  const [selectedSeoSlug, setSelectedSeoSlug] = useState<string>("home");
+  const [seoForm, setSeoForm] = useState({
+    title: "",
+    description: "",
+    keywords: "",
+  });
+  const [savingSeo, setSavingSeo] = useState(false);
 
   // Search & Filters
   const [postSearch, setPostSearch] = useState("");
@@ -177,6 +204,9 @@ export default function AdminDashboardPage() {
     date: "",
     image: "",
     author: "",
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: "",
   });
 
   // Gallery form state
@@ -187,9 +217,29 @@ export default function AdminDashboardPage() {
     alt: "",
   });
 
+  // Topper form state
+  const [topperForm, setTopperForm] = useState({
+    name: "",
+    year: "2026",
+    board: "Intermediate (Class 12)",
+    rank: 1,
+    rankType: "District Rank",
+    percentage: "",
+    photo: "",
+    category: "General Rank Holder",
+    subject: "",
+    marks: "",
+  });
+
+  const [topperModal, setTopperModal] = useState<{ isOpen: boolean; mode: "add" | "edit"; data?: TopperItem }>({
+    isOpen: false,
+    mode: "add",
+  });
+
   // Uploading state
   const [uploadingPostImage, setUploadingPostImage] = useState(false);
   const [uploadingGalleryImage, setUploadingGalleryImage] = useState(false);
+  const [uploadingTopperPhoto, setUploadingTopperPhoto] = useState(false);
 
   // Helper for admin auth header
   const getAuthHeaders = (): Record<string, string> => {
@@ -271,6 +321,13 @@ export default function AdminDashboardPage() {
         setFacilities(facilitiesData.facilities || []);
       }
 
+      // 9. Fetch toppers
+      const toppersRes = await fetch("/api/toppers");
+      if (toppersRes.ok) {
+        const toppersData = await toppersRes.json();
+        setToppers(toppersData.toppers || []);
+      }
+
       // 9. Fetch site settings
       const settingsRes = await fetch("/api/settings");
       if (settingsRes.ok) {
@@ -289,10 +346,80 @@ export default function AdminDashboardPage() {
           });
         }
       }
+
+      // 10. Fetch Page SEO settings
+      const seoRes = await fetch("/api/seo");
+      if (seoRes.ok) {
+        const seoData = await seoRes.json();
+        if (seoData.seo) {
+          setSeoMap(seoData.seo);
+          const currentItem = seoData.seo[selectedSeoSlug] || seoData.seo["home"];
+          if (currentItem) {
+            setSeoForm({
+              title: currentItem.title || "",
+              description: currentItem.description || "",
+              keywords: currentItem.keywords || "",
+            });
+          }
+        }
+      }
     } catch (error) {
       showToast("error", "Failed to retrieve dashboard details.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSelectSeoPage = (slug: string) => {
+    setSelectedSeoSlug(slug);
+    const item = seoMap[slug];
+    if (item) {
+      setSeoForm({
+        title: item.title || "",
+        description: item.description || "",
+        keywords: item.keywords || "",
+      });
+    }
+  };
+
+  const handleSaveSeo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSeo(true);
+    try {
+      const res = await fetch("/api/seo", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          pageSlug: selectedSeoSlug,
+          title: seoForm.title,
+          description: seoForm.description,
+          keywords: seoForm.keywords,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", `Page SEO updated for ${seoMap[selectedSeoSlug]?.pageName || selectedSeoSlug}!`);
+        setSeoMap((prev) => ({
+          ...prev,
+          [selectedSeoSlug]: {
+            ...prev[selectedSeoSlug],
+            title: seoForm.title,
+            description: seoForm.description,
+            keywords: seoForm.keywords,
+            updatedAt: new Date().toISOString(),
+          },
+        }));
+      } else {
+        showToast("error", data.error || "Failed to update SEO settings.");
+      }
+    } catch (err) {
+      showToast("error", "Network error updating SEO settings.");
+    } finally {
+      setSavingSeo(false);
     }
   };
 
@@ -307,27 +434,7 @@ export default function AdminDashboardPage() {
     }, 4000);
   };
 
-  // Seeding trigger
-  const handleSeedDatabase = async () => {
-    setSeeding(true);
-    try {
-      const res = await fetch("/api/seed", { method: "POST", headers: getAuthHeaders() });
-      const data = await res.json();
-      if (res.ok) {
-        showToast(
-          "success",
-          `Seeded successfully! Updated database records.`
-        );
-        fetchData();
-      } else {
-        showToast("error", data.error || "Failed to seed database.");
-      }
-    } catch (err) {
-      showToast("error", "Network error during seeding.");
-    } finally {
-      setSeeding(false);
-    }
-  };
+
 
   // Logout trigger
   const handleLogout = async () => {
@@ -430,6 +537,127 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Topper form modals handlers
+  const openAddTopper = () => {
+    setTopperForm({
+      name: "",
+      year: "2026",
+      board: "Intermediate (Class 12)",
+      rank: 1,
+      rankType: "District Rank",
+      percentage: "",
+      photo: "",
+      category: "General Rank Holder",
+      subject: "",
+      marks: "",
+    });
+    setTopperModal({ isOpen: true, mode: "add" });
+  };
+
+  const openEditTopper = (item: TopperItem) => {
+    setTopperForm({
+      name: item.name,
+      year: item.year || "2026",
+      board: item.board || "Intermediate (Class 12)",
+      rank: item.rank || 1,
+      rankType: item.rankType || "District Rank",
+      percentage: String(item.percentage || ""),
+      photo: item.photo || "",
+      category: item.category || "General Rank Holder",
+      subject: item.subject || "",
+      marks: String(item.marks || ""),
+    });
+    setTopperModal({ isOpen: true, mode: "edit", data: item });
+  };
+
+  const handleTopperPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingTopperPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setTopperForm((prev) => ({ ...prev, photo: data.url }));
+        showToast("success", "Student photo uploaded successfully.");
+      } else {
+        showToast("error", data.error || "Failed to upload image.");
+      }
+    } catch (err) {
+      showToast("error", "Error uploading student photo.");
+    } finally {
+      setUploadingTopperPhoto(false);
+    }
+  };
+
+  const handleTopperSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!topperForm.name || !topperForm.percentage || !topperForm.photo) {
+      showToast("error", "Please fill student name, percentage, and upload photo.");
+      return;
+    }
+    const url = topperModal.mode === "add" ? "/api/toppers" : `/api/toppers/${topperModal.data?._id}`;
+    const method = topperModal.mode === "add" ? "POST" : "PUT";
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          name: topperForm.name,
+          year: topperForm.year,
+          board: topperForm.board,
+          rank: Number(topperForm.rank) || 1,
+          rankType: topperForm.rankType,
+          percentage: Number(topperForm.percentage),
+          photo: topperForm.photo,
+          category: topperForm.category,
+          subject: topperForm.subject,
+          marks: Number(topperForm.marks) || 0,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", topperModal.mode === "add" ? "Topper record added!" : "Topper record updated!");
+        setTopperModal({ isOpen: false, mode: "add" });
+        fetchData();
+      } else {
+        showToast("error", data.error || "Failed to save topper record.");
+      }
+    } catch (err) {
+      showToast("error", "Network error saving topper record.");
+    }
+  };
+
+  const handleDeleteTopper = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this topper record?")) return;
+    try {
+      const res = await fetch(`/api/toppers/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        showToast("success", "Topper record deleted.");
+        setToppers((prev) => prev.filter((t) => t._id !== id));
+      } else {
+        const data = await res.json();
+        showToast("error", data.error || "Failed to delete record.");
+      }
+    } catch (err) {
+      showToast("error", "Network error deleting topper record.");
+    }
+  };
+
   // Post form modals handlers
   const openAddPost = () => {
     setPostForm({
@@ -440,6 +668,9 @@ export default function AdminDashboardPage() {
       date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
       image: "",
       author: admin?.name || "",
+      metaTitle: "",
+      metaDescription: "",
+      metaKeywords: "",
     });
     setPostModal({ isOpen: true, mode: "add" });
   };
@@ -453,6 +684,9 @@ export default function AdminDashboardPage() {
       date: post.date,
       image: post.image,
       author: post.author,
+      metaTitle: post.metaTitle || "",
+      metaDescription: post.metaDescription || "",
+      metaKeywords: post.metaKeywords || "",
     });
     setPostModal({ isOpen: true, mode: "edit", data: post });
   };
@@ -1041,11 +1275,13 @@ export default function AdminDashboardPage() {
     { id: "overview", label: "Overview", icon: <FaChartLine className="w-4 h-4" /> },
     { id: "posts", label: "News & Posts", icon: <FaNewspaper className="w-4 h-4" /> },
     { id: "gallery", label: "Photo Gallery", icon: <FaImage className="w-4 h-4" /> },
+    { id: "toppers", label: "Toppers Gallery", icon: <FaTrophy className="w-4 h-4" /> },
     { id: "testimonials", label: "Testimonials", icon: <FaQuoteLeft className="w-4 h-4" /> },
     { id: "facilities", label: "Campus Facilities", icon: <FaBuilding className="w-4 h-4" /> },
     { id: "admissions", label: "Admissions", icon: <FaGraduationCap className="w-4 h-4" /> },
     { id: "contacts", label: "Contact Messages", icon: <FaEnvelope className="w-4 h-4" /> },
     { id: "resources", label: "Admission Forms", icon: <FaFileDownload className="w-4 h-4" /> },
+    { id: "seo", label: "Page SEO Settings", icon: <FaSearch className="w-4 h-4" /> },
     { id: "settings", label: "System Config", icon: <FaCog className="w-4 h-4" /> },
   ];
 
@@ -1149,9 +1385,11 @@ export default function AdminDashboardPage() {
               {activeTab === "overview" && "Dashboard Overview"}
               {activeTab === "posts" && "News & Post Circulars"}
               {activeTab === "gallery" && "Campus Photo Gallery"}
+              {activeTab === "toppers" && "Toppers Gallery Management"}
               {activeTab === "testimonials" && "Community Testimonials"}
               {activeTab === "facilities" && "Campus Facilities Management"}
               {activeTab === "admissions" && "Admissions inquiries"}
+              {activeTab === "seo" && "Page SEO Settings"}
               {activeTab === "settings" && "System Settings"}
             </h2>
           </div>
@@ -1248,24 +1486,6 @@ export default function AdminDashboardPage() {
                         <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
                         <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Active database connection</span>
                       </div>
-                    </div>
-
-                    {/* Quick Seeder Trigger */}
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col justify-between gap-4">
-                      <div>
-                        <h3 className="text-base font-extrabold text-white mb-2">Import Default Website Data</h3>
-                        <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                          Clear missing documents and load defaults for the board updates and gallery catalog.
-                        </p>
-                      </div>
-                      <button
-                        onClick={handleSeedDatabase}
-                        disabled={seeding}
-                        className="bg-amber-500/10 hover:bg-amber-500 border border-amber-500/20 hover:border-amber-500 hover:text-slate-950 text-amber-500 text-xs font-bold py-2.5 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 w-fit"
-                      >
-                        <FaDatabase className="w-3.5 h-3.5" />
-                        <span>{seeding ? "Importing..." : "Seed Default Data"}</span>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -1468,6 +1688,98 @@ export default function AdminDashboardPage() {
                   ) : (
                     <div className="text-center py-16 border border-dashed border-white/10 rounded-2xl">
                       <p className="text-slate-400 text-sm font-semibold">No gallery items found.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB: TOPPERS GALLERY */}
+              {activeTab === "toppers" && (
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-6 shadow-xl">
+                  <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-extrabold text-white flex items-center gap-2">
+                        <FaTrophy className="text-amber-400 w-5 h-5" />
+                        <span>Toppers Wall of Fame</span>
+                      </h3>
+                      <p className="text-slate-400 text-xs mt-1">
+                        Add, edit, or delete student rank holders and subject toppers displayed on the public Toppers page.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={openAddTopper}
+                      className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3 px-5 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-500/20"
+                    >
+                      <FaPlus className="w-3.5 h-3.5" />
+                      <span>Add Student Topper</span>
+                    </button>
+                  </div>
+
+                  {/* Toppers Grid */}
+                  {toppers.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {toppers.map((item) => (
+                        <div
+                          key={item._id}
+                          className="bg-slate-900 border border-white/10 rounded-2xl p-5 flex flex-col justify-between gap-4 relative group hover:border-amber-400/50 transition-colors"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-slate-950 border border-white/10 shrink-0">
+                              <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="flex-grow min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="px-2 py-0.5 rounded-md bg-amber-400/10 text-amber-300 font-extrabold text-[10px] uppercase border border-amber-400/20">
+                                  {item.year}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 font-bold text-[10px] uppercase border border-white/5">
+                                  Rank {item.rank} ({item.rankType})
+                                </span>
+                              </div>
+                              <h4 className="text-white font-extrabold text-sm leading-tight truncate">{item.name}</h4>
+                              <p className="text-slate-400 text-xs mt-1">{item.board}</p>
+                              {item.category === "Subject Topper" ? (
+                                <p className="text-amber-400 text-xs font-bold mt-1">
+                                  {item.subject}: {item.marks} marks
+                                </p>
+                              ) : (
+                                <p className="text-emerald-400 text-xs font-black mt-1">
+                                  {item.percentage}% Percentage
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-end gap-2 border-t border-white/5 pt-3">
+                            <button
+                              onClick={() => openEditTopper(item)}
+                              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                            >
+                              <FaEdit className="w-3 h-3 text-amber-400" />
+                              <span>Edit</span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTopper(item._id)}
+                              className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                            >
+                              <FaTrash className="w-3 h-3" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16 border border-dashed border-white/10 rounded-2xl">
+                      <FaTrophy className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                      <p className="text-slate-400 text-sm font-semibold mb-3">No toppers recorded in database yet.</p>
+                      <button
+                        onClick={openAddTopper}
+                        className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition"
+                      >
+                        Add First Topper Record
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1892,6 +2204,177 @@ export default function AdminDashboardPage() {
                 </div>
               )}
 
+              {/* TAB: DYNAMIC PAGE SEO PANEL */}
+              {activeTab === "seo" && (
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 flex flex-col gap-8 shadow-xl">
+                  {/* Header Title */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+                    <div>
+                      <h3 className="text-xl font-black text-white flex items-center gap-2.5">
+                        <FaSearch className="text-rose-500 w-5 h-5" />
+                        <span>Dynamic Page SEO Settings</span>
+                      </h3>
+                      <p className="text-slate-400 text-xs sm:text-sm mt-1">
+                        Select any page below to customize its Meta Title, Description, and Keywords for Google, Bing & Social Sharing.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Page Selector Chips */}
+                  <div className="flex flex-wrap gap-2.5">
+                    {Object.keys(seoMap).map((slug) => {
+                      const pageObj = seoMap[slug];
+                      const isSelected = selectedSeoSlug === slug;
+                      return (
+                        <button
+                          key={slug}
+                          type="button"
+                          onClick={() => handleSelectSeoPage(slug)}
+                          className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-2 ${
+                            isSelected
+                              ? "bg-rose-600 text-white shadow-lg shadow-rose-600/20 scale-105"
+                              : "bg-slate-900 hover:bg-slate-800 text-slate-400 border border-white/10 hover:text-white"
+                          }`}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${isSelected ? "bg-amber-400 animate-pulse" : "bg-slate-600"}`} />
+                          <span>{pageObj?.pageName || slug}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* 2-Column Split: Form vs Live SERP Preview */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* Left Column: Form Inputs */}
+                    <form onSubmit={handleSaveSeo} className="lg:col-span-7 flex flex-col gap-6 bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-inner">
+                      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                        <span className="text-xs font-extrabold text-rose-400 uppercase tracking-wider">
+                          Editing SEO for: <strong className="text-white">{seoMap[selectedSeoSlug]?.pageName || selectedSeoSlug}</strong>
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-semibold">
+                          URL Slug: /{selectedSeoSlug === "home" ? "" : selectedSeoSlug}
+                        </span>
+                      </div>
+
+                      {/* Meta Title Input */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-white text-xs font-bold uppercase tracking-wider">
+                            Page Meta Title *
+                          </label>
+                          <span className={`text-[10px] font-bold ${seoForm.title.length > 60 ? "text-amber-400" : "text-slate-500"}`}>
+                            {seoForm.title.length} / 60 recommended
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          value={seoForm.title}
+                          onChange={(e) => setSeoForm({ ...seoForm, title: e.target.value })}
+                          placeholder="Ex: About Us | Abhilasha Group of Academies"
+                          className="w-full bg-slate-950 border border-white/10 text-white font-semibold rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600"
+                        />
+                        <p className="text-slate-500 text-[11px] mt-1.5 leading-snug">
+                          Displayed as the clickable headline in Google search results and browser tab.
+                        </p>
+                      </div>
+
+                      {/* Meta Description Textarea */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-white text-xs font-bold uppercase tracking-wider">
+                            Page Meta Description *
+                          </label>
+                          <span className={`text-[10px] font-bold ${seoForm.description.length > 160 ? "text-amber-400" : "text-slate-500"}`}>
+                            {seoForm.description.length} / 160 recommended
+                          </span>
+                        </div>
+                        <textarea
+                          required
+                          rows={4}
+                          value={seoForm.description}
+                          onChange={(e) => setSeoForm({ ...seoForm, description: e.target.value })}
+                          placeholder="Ex: Learn about Abhilasha Academy & Maa Durga Abhilasha Inter College history..."
+                          className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600 resize-none leading-relaxed"
+                        />
+                        <p className="text-slate-500 text-[11px] mt-1.5 leading-snug">
+                          Short summary snippet rendered below the title in search engine results.
+                        </p>
+                      </div>
+
+                      {/* Meta Keywords Input */}
+                      <div>
+                        <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                          Meta Keywords (Comma-Separated)
+                        </label>
+                        <input
+                          type="text"
+                          value={seoForm.keywords}
+                          onChange={(e) => setSeoForm({ ...seoForm, keywords: e.target.value })}
+                          placeholder="Ex: Abhilasha Academy, Gorakhpur School, UP Board Admission"
+                          className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600"
+                        />
+                        <p className="text-slate-500 text-[11px] mt-1.5 leading-snug">
+                          Keywords for indexing and taxonomy search terms.
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-end">
+                        <button
+                          type="submit"
+                          disabled={savingSeo}
+                          className="bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-lg shadow-rose-600/20"
+                        >
+                          {savingSeo ? <FaSpinner className="w-4 h-4 animate-spin" /> : <FaCheck className="w-4 h-4" />}
+                          <span>Save SEO Settings</span>
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Right Column: Google Live Search SERP Preview */}
+                    <div className="lg:col-span-5 flex flex-col gap-4 bg-slate-900 border border-white/10 rounded-2xl p-6">
+                      <span className="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <FaEye className="w-3.5 h-3.5" />
+                        <span>Google Search Result Live Preview</span>
+                      </span>
+                      <p className="text-slate-400 text-xs leading-relaxed">
+                        This preview simulates how this page will appear to users searching on Google or Bing:
+                      </p>
+
+                      {/* Google Search Card Mockup */}
+                      <div className="bg-white rounded-2xl p-5 shadow-lg flex flex-col gap-1.5 text-slate-800 font-sans">
+                        <div className="flex items-center gap-2 text-xs text-slate-600">
+                          <div className="w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center text-[9px] font-bold">A</div>
+                          <span className="truncate text-slate-700 font-semibold">https://abhilashaacademy.org › {selectedSeoSlug === "home" ? "" : selectedSeoSlug}</span>
+                        </div>
+                        <h4 className="text-blue-700 hover:underline font-medium text-base sm:text-lg leading-snug cursor-pointer line-clamp-1">
+                          {seoForm.title || "Page Meta Title"}
+                        </h4>
+                        <p className="text-slate-600 text-xs sm:text-sm leading-relaxed line-clamp-3">
+                          {seoForm.description || "Page meta description snippet will be displayed here."}
+                        </p>
+                      </div>
+
+                      {/* Status Meta */}
+                      <div className="bg-slate-950 p-4 rounded-xl border border-white/5 text-xs text-slate-400 flex flex-col gap-2 mt-2">
+                        <div className="flex justify-between">
+                          <span>Target Route:</span>
+                          <strong className="text-white">/{selectedSeoSlug === "home" ? "" : selectedSeoSlug}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Last Updated:</span>
+                          <strong className="text-amber-400">
+                            {seoMap[selectedSeoSlug]?.updatedAt
+                              ? new Date(seoMap[selectedSeoSlug].updatedAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                              : "Default Preset"}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* TAB 5: SYSTEM CONFIG PANEL */}
               {activeTab === "settings" && (
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-6 shadow-xl">
@@ -2073,21 +2556,6 @@ export default function AdminDashboardPage() {
                       </div>
                     </form>
                   </div>
-
-                  <h3 className="text-base font-extrabold text-white border-b border-white/5 pb-2 mt-4">Database Migration</h3>
-                  <div className="flex flex-col gap-3">
-                    <p className="text-slate-400 text-xs sm:text-sm max-w-xl">
-                      If MongoDB collections are empty, run the automatic database seeding to load mock board announcements, circular updates, and school gallery images.
-                    </p>
-                    <button
-                      onClick={handleSeedDatabase}
-                      disabled={seeding}
-                      className="bg-amber-500/10 hover:bg-amber-500 border border-amber-500/20 hover:border-amber-500 hover:text-slate-950 text-amber-500 text-xs font-bold py-2.5 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 w-fit mt-2"
-                    >
-                      <FaDatabase className="w-3.5 h-3.5" />
-                      <span>{seeding ? "Importing defaults..." : "Seed Default Database Content"}</span>
-                    </button>
-                  </div>
                 </div>
               )}
             </motion.div>
@@ -2235,6 +2703,61 @@ export default function AdminDashboardPage() {
                     className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-650"
                     required
                   />
+                </div>
+
+                {/* Optional SEO Meta Fields Section */}
+                <div className="pt-3 border-t border-white/10 flex flex-col gap-3 mt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                      <FaSearch className="w-3 h-3 text-rose-400" />
+                      <span>Article Meta SEO Fields (Optional)</span>
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
+                      Not Required
+                    </span>
+                  </div>
+
+                  {/* Meta Title */}
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-1">
+                      Custom Meta Title (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={postForm.metaTitle}
+                      onChange={(e) => setPostForm({ ...postForm, metaTitle: e.target.value })}
+                      placeholder="Leave blank to use main article title"
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-2.5 px-4 text-xs sm:text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600"
+                    />
+                  </div>
+
+                  {/* Meta Description */}
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-1">
+                      Custom Meta Description (Optional)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={postForm.metaDescription}
+                      onChange={(e) => setPostForm({ ...postForm, metaDescription: e.target.value })}
+                      placeholder="Leave blank to use summary intro"
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-2.5 px-4 text-xs sm:text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600 resize-none"
+                    />
+                  </div>
+
+                  {/* Meta Keywords */}
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-1">
+                      Custom Meta Keywords (Optional - Comma Separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={postForm.metaKeywords}
+                      onChange={(e) => setPostForm({ ...postForm, metaKeywords: e.target.value })}
+                      placeholder="Ex: Abhilasha Admission, UP Board News, Result"
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-2.5 px-4 text-xs sm:text-sm focus:outline-none focus:border-rose-500 placeholder:text-slate-600"
+                    />
+                  </div>
                 </div>
 
                 <button
@@ -2832,6 +3355,226 @@ export default function AdminDashboardPage() {
                     {facilityModal.mode === "add" ? "Create Facility" : "Save Changes"}
                   </button>
                 </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Topper Modal Dialog (Add/Edit) */}
+        {topperModal.isOpen && (
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
+                <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                  <FaTrophy className="text-amber-400 w-5 h-5" />
+                  <span>{topperModal.mode === "add" ? "Add Student Topper" : "Update Student Topper"}</span>
+                </h3>
+                <button
+                  onClick={() => setTopperModal({ isOpen: false, mode: "add" })}
+                  className="p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white cursor-pointer transition-colors"
+                >
+                  <FaTimes className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleTopperSubmit} className="flex flex-col gap-4">
+                {/* Name */}
+                <div>
+                  <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                    Student Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={topperForm.name}
+                    onChange={(e) => setTopperForm({ ...topperForm, name: e.target.value })}
+                    placeholder="Ex: Abhishek Pandey"
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-amber-400 placeholder:text-slate-650"
+                    required
+                  />
+                </div>
+
+                {/* Category & Academic Year */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                      Topper Category *
+                    </label>
+                    <select
+                      value={topperForm.category}
+                      onChange={(e) => setTopperForm({ ...topperForm, category: e.target.value as any })}
+                      className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-amber-400 cursor-pointer"
+                    >
+                      <option value="General Rank Holder">General Rank Holder</option>
+                      <option value="Subject Topper">Subject Topper</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                      Academic Year *
+                    </label>
+                    <input
+                      type="text"
+                      value={topperForm.year}
+                      onChange={(e) => setTopperForm({ ...topperForm, year: e.target.value })}
+                      placeholder="Ex: 2026"
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Board & Rank Type */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                      Class / Board Stream *
+                    </label>
+                    <select
+                      value={topperForm.board}
+                      onChange={(e) => setTopperForm({ ...topperForm, board: e.target.value })}
+                      className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-amber-400 cursor-pointer"
+                    >
+                      <option value="Intermediate (Class 12)">Intermediate (Class 12)</option>
+                      <option value="High School (Class 10)">High School (Class 10)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                      Rank Distinction Level
+                    </label>
+                    <select
+                      value={topperForm.rankType}
+                      onChange={(e) => setTopperForm({ ...topperForm, rankType: e.target.value })}
+                      className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-amber-400 cursor-pointer"
+                    >
+                      <option value="District Rank">District Rank</option>
+                      <option value="School Rank">School Rank</option>
+                      <option value="State Rank">State Rank</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Rank Number & Percentage Marks */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                      Rank Position #
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={topperForm.rank}
+                      onChange={(e) => setTopperForm({ ...topperForm, rank: Number(e.target.value) })}
+                      placeholder="1"
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                      Percentage Marks (%)*
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={topperForm.percentage}
+                      onChange={(e) => setTopperForm({ ...topperForm, percentage: e.target.value })}
+                      placeholder="Ex: 98.4"
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Subject Topper specific fields */}
+                {topperForm.category === "Subject Topper" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-amber-400/20">
+                    <div>
+                      <label className="text-amber-400 text-xs font-bold uppercase tracking-wider block mb-2">
+                        Subject Name
+                      </label>
+                      <input
+                        type="text"
+                        value={topperForm.subject}
+                        onChange={(e) => setTopperForm({ ...topperForm, subject: e.target.value })}
+                        placeholder="Ex: Mathematics"
+                        className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-2.5 px-4 text-xs sm:text-sm focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-amber-400 text-xs font-bold uppercase tracking-wider block mb-2">
+                        Subject Marks
+                      </label>
+                      <input
+                        type="number"
+                        value={topperForm.marks}
+                        onChange={(e) => setTopperForm({ ...topperForm, marks: e.target.value })}
+                        placeholder="Ex: 99"
+                        className="w-full bg-slate-950 border border-white/10 text-white rounded-xl py-2.5 px-4 text-xs sm:text-sm focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Student Photo Upload */}
+                <div>
+                  <label className="text-white text-xs font-bold uppercase tracking-wider block mb-2">
+                    Student Photo File *
+                  </label>
+                  <div className="flex flex-col gap-3">
+                    {topperForm.photo ? (
+                      <div className="relative w-36 h-44 rounded-xl overflow-hidden border border-white/10 bg-slate-950 flex items-center justify-center group shadow-lg mx-auto">
+                        <img src={topperForm.photo} alt="Uploaded Student Photo" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setTopperForm({ ...topperForm, photo: "" })}
+                          className="absolute top-2 right-2 px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-colors cursor-pointer shadow-md flex items-center gap-1"
+                        >
+                          <FaTimes className="w-3 h-3" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-white/20 hover:border-amber-400 rounded-xl p-6 bg-white/5 cursor-pointer transition-colors text-slate-300 hover:text-white text-xs font-bold">
+                        {uploadingTopperPhoto ? (
+                          <>
+                            <FaSpinner className="w-5 h-5 animate-spin text-amber-400" />
+                            <span>Uploading student photo...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FaUpload className="w-5 h-5 text-amber-400 mb-1" />
+                            <span className="text-sm font-extrabold text-white">Click to Upload Photo</span>
+                            <span className="text-slate-400 text-[11px]">Supports PNG, JPG, WebP</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleTopperPhotoUpload}
+                          className="hidden"
+                          disabled={uploadingTopperPhoto}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl py-3 font-extrabold text-sm tracking-wide transition-all shadow-md shadow-amber-500/10 cursor-pointer flex items-center justify-center gap-2 mt-4"
+                >
+                  <FaCheck className="w-3.5 h-3.5" />
+                  <span>{topperModal.mode === "add" ? "Save Topper Student" : "Save Changes"}</span>
+                </button>
               </form>
             </motion.div>
           </div>

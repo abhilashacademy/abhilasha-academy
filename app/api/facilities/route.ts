@@ -7,31 +7,11 @@ import { facilitiesData } from "@/data/facilities";
 export async function GET() {
   try {
     await connectToDatabase();
-    let items = await Facility.find({}).sort({ order: 1, createdAt: -1 });
-
-    if (items.length === 0) {
-      const seedItems = facilitiesData.map((fac, idx) => ({
-        title: fac.title,
-        description: fac.description,
-        iconName: fac.iconName,
-        image: fac.image,
-        order: idx,
-      }));
-      await Facility.insertMany(seedItems);
-      items = await Facility.find({}).sort({ order: 1, createdAt: -1 });
-    }
-
+    const items = await Facility.find({}).sort({ order: 1, createdAt: -1 });
     return NextResponse.json({ facilities: items });
   } catch (error: any) {
-    console.warn("GET Facilities DB Error, returning local fallback data:", error?.message);
-    const fallbackItems = facilitiesData.map((fac) => ({
-      _id: fac.id,
-      title: fac.title,
-      description: fac.description,
-      iconName: fac.iconName,
-      image: fac.image,
-    }));
-    return NextResponse.json({ facilities: fallbackItems });
+    console.warn("GET Facilities DB Error:", error?.message);
+    return NextResponse.json({ facilities: [] });
   }
 }
 

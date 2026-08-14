@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { title, summary, content, category, date, image, author } = body;
+    const { title, summary, content, category, date, image, author, metaTitle, metaDescription, metaKeywords } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -50,6 +50,9 @@ export async function POST(request: Request) {
         date: postDate,
         image: image || undefined,
         author: postAuthor,
+        metaTitle: metaTitle ? String(metaTitle).trim() : "",
+        metaDescription: metaDescription ? String(metaDescription).trim() : "",
+        metaKeywords: metaKeywords ? String(metaKeywords).trim() : "",
       });
 
       return NextResponse.json(
@@ -67,6 +70,9 @@ export async function POST(request: Request) {
         date: postDate,
         image: image || undefined,
         author: postAuthor,
+        metaTitle: metaTitle ? String(metaTitle).trim() : "",
+        metaDescription: metaDescription ? String(metaDescription).trim() : "",
+        metaKeywords: metaKeywords ? String(metaKeywords).trim() : "",
       };
 
       return NextResponse.json(

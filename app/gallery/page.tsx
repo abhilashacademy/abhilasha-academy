@@ -1,10 +1,11 @@
 import React from "react";
 import Gallery from "@/components/Gallery/Gallery";
 
-export const metadata = {
-  title: "Campus Gallery - Abhilasha Group of Academies",
-  description: "View snapshots of life at Abhilasha Academy and Maa Durga Abhilasha Inter College, featuring laboratories, classrooms, and sports tournaments.",
-};
+import { getPageSEO } from "@/utils/seo";
+
+export async function generateMetadata() {
+  return await getPageSEO("gallery");
+}
 
 export default function GalleryPage() {
   return (

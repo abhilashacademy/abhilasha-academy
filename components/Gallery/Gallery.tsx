@@ -16,7 +16,7 @@ interface GalleryProps {
 }
 
 export default function Gallery({ limit = 9, showViewAll = true }: GalleryProps) {
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(galleryData);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [selectedCat, setSelectedCat] = useState<GalleryCategory>("all");
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
@@ -27,7 +27,7 @@ export default function Gallery({ limit = 9, showViewAll = true }: GalleryProps)
         const res = await fetch("/api/gallery");
         if (res.ok) {
           const data = await res.json();
-          if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+          if (data.items && Array.isArray(data.items)) {
             const mappedItems = data.items.map((g: any) => ({
               id: g._id || g.id,
               title: g.title,

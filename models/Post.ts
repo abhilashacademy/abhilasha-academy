@@ -35,6 +35,21 @@ const PostSchema = new Schema(
       type: String,
       default: "Administrator",
     },
+    metaTitle: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    metaDescription: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    metaKeywords: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   {
     timestamps: true,

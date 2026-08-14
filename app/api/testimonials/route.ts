@@ -7,17 +7,11 @@ import { testimonialsData } from "@/data/testimonials";
 export async function GET() {
   try {
     await connectToDatabase();
-    let items = await Testimonial.find({}).sort({ createdAt: -1 });
-
-    if (items.length === 0) {
-      await Testimonial.insertMany(testimonialsData);
-      items = await Testimonial.find({}).sort({ createdAt: -1 });
-    }
-
+    const items = await Testimonial.find({}).sort({ createdAt: -1 });
     return NextResponse.json({ testimonials: items });
   } catch (error: any) {
-    console.warn("GET Testimonials DB Connection Error, returning local fallback data:", error?.message);
-    return NextResponse.json({ testimonials: testimonialsData });
+    console.warn("GET Testimonials DB Connection Error:", error?.message);
+    return NextResponse.json({ testimonials: [] });
   }
 }
 

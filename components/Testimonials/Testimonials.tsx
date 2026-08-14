@@ -18,7 +18,7 @@ import "swiper/css/navigation";
 export default function Testimonials() {
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
-  const [items, setItems] = useState<TestimonialType[]>(testimonialsData);
+  const [items, setItems] = useState<TestimonialType[]>([]);
 
   useEffect(() => {
     async function loadTestimonials() {
@@ -30,7 +30,7 @@ export default function Testimonials() {
         const res = await fetch("/api/testimonials");
         if (res.ok) {
           const data = await res.json();
-          if (data.testimonials && Array.isArray(data.testimonials) && data.testimonials.length > 0) {
+          if (data.testimonials && Array.isArray(data.testimonials)) {
             const active = data.testimonials
               .filter((t: any) => !deletedIds.includes(String(t._id || t.id)))
               .map((t: any) => ({
@@ -45,9 +45,9 @@ export default function Testimonials() {
             return;
           }
         }
-        setItems(testimonialsData.filter((t) => !deletedIds.includes(String(t.id))));
+        setItems([]);
       } catch (err) {
-        setItems(testimonialsData.filter((t) => !deletedIds.includes(String(t.id))));
+        setItems([]);
       }
     }
 

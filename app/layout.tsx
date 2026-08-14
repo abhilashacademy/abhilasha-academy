@@ -20,21 +20,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://abhilashaacademy.org"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.mdabhilasha.in"),
   title: {
-    template: "%s | Abhilasha Group of Academies",
     default: "Abhilasha Group of Academies | Where Teaching is an Interest",
+    template: "%s | Abhilasha Group of Academies",
   },
-  description: "Established in 2010, Abhilasha Academy and Maa Durga Abhilasha Inter College provide affordable, value-based, quality Hindi medium state board education for classes 6 to 12. Gorakhpur, Uttar Pradesh.",
+  description: "Established in 2010, Abhilasha Academy and Maa Durga Abhilasha Inter College provide affordable, value-based, quality Hindi and English medium state board education for classes Nursery to 12. Gorakhpur & Basti, Uttar Pradesh.",
   keywords: [
     "Abhilasha Group of Academies",
     "Abhilasha Academy",
     "Maa Durga Abhilasha Inter College",
     "School in Gorakhpur",
-    "UP Board Hindi Medium School",
+    "School in Basti",
+    "UP Board Hindi and English Medium School",
     "Gorakhpur School admission",
-    "Class 6 to 12 Hindi Medium",
-    "Quality Hindi Medium Education",
+    "Class Nursery to 12 Hindi English Medium",
+    "Quality Hindi and English Medium Education",
   ],
   authors: [{ name: "Abhilasha Group of Academies" }],
   creator: "Abhilasha Admin Desk",
@@ -45,9 +46,9 @@ export const metadata: Metadata = {
     telephone: true,
   },
   openGraph: {
-    title: "Abhilasha Group of Academies",
-    description: "Value-based quality Hindi medium state board education for classes 6 to 12. Gorakhpur, UP.",
-    url: "https://abhilashaacademy.org",
+    title: "Abhilasha Group of Academies | Where Teaching is an Interest",
+    description: "Value-based quality Hindi and English medium state board education for classes Nursery to 12. Gorakhpur & Basti, UP.",
+    url: "https://www.mdabhilasha.in",
     siteName: "Abhilasha Group of Academies",
     locale: "en_IN",
     type: "website",

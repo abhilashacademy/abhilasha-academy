@@ -9,6 +9,11 @@ import Testimonials from "@/components/Testimonials/Testimonials";
 import Gallery from "@/components/Gallery/Gallery";
 import News from "@/components/News/News";
 import CTA from "@/components/CTA/CTA";
+import { getPageSEO } from "@/utils/seo";
+
+export async function generateMetadata() {
+  return await getPageSEO("home");
+}
 
 export default function Home() {
   return (
