@@ -171,10 +171,15 @@ export default function Footer() {
                 <FaEnvelope className="text-secondary w-3.5 h-3.5 shrink-0" />
                 <span>{contactDetails.email}</span>
               </a>
-              <div className="flex items-start gap-3">
-                <FaMapMarkerAlt className="text-secondary w-3.5 h-3.5 mt-1 shrink-0" />
+              <a
+                href={contactDetails.googleMapsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 hover:text-white transition-colors group"
+              >
+                <FaMapMarkerAlt className="text-secondary w-3.5 h-3.5 mt-1 shrink-0 group-hover:scale-110 transition-transform" />
                 <span className="leading-relaxed">{contactDetails.address}</span>
-              </div>
+              </a>
             </div>
 
             {/* Newsletter form */}

@@ -185,10 +185,15 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
                   <FaEnvelope className="text-amber-400 w-3.5 h-3.5 shrink-0" />
                   <span>{contactDetails.email}</span>
                 </a>
-                <div className="flex items-start gap-3">
+                <a
+                  href={contactDetails.googleMapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-3 hover:text-amber-300 transition-colors"
+                >
                   <FaMapMarkerAlt className="text-amber-400 w-3.5 h-3.5 mt-0.5 shrink-0" />
                   <span className="leading-relaxed text-slate-400">{contactDetails.address}</span>
-                </div>
+                </a>
               </div>
             </div>
           </motion.div>

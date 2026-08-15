@@ -187,19 +187,41 @@ function ContactFormAndDetails() {
           </div>
         </AnimatedSection>
 
-        {/* Map Location placeholder */}
-        <AnimatedSection variant="fade-right" className="rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-500 border border-slate-150 relative h-72 bg-slate-100">
+        {/* Map Location Card */}
+        <AnimatedSection variant="fade-right" className="rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-500 border border-slate-200 relative h-80 bg-slate-100 group">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d113996.11370258071!2d83.32152431713401!3d26.76442654347716!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3991446a0c3321b1%3A0x4f5de79f63503698!2sGorakhpur%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen={false}
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3563.876793836371!2d82.5859183!3d26.7618493!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3990c7bc1ce28d0d%3A0xe5eac19c807a312a!2sMaa%20Durga%20Abhilasha%20Inter%20Collage!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+            className="absolute inset-0 w-full h-full border-0 pointer-events-none"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="filter grayscale saturate-150 contrast-125"
             title="School Location Map"
           />
+
+          {/* Clickable Overlay with Pin & Hover School Name Tooltip */}
+          <a
+            href={contactDetails.googleMapsLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Click to view Abhilasha Academy on Google Maps"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/0 hover:bg-slate-900/10 transition-all duration-300 z-10 cursor-pointer group/pin"
+          >
+            {/* Center Location Pin with pulsing beacon */}
+            <div className="relative flex flex-col items-center">
+              {/* Pulse animation ring */}
+              <span className="absolute -top-1 w-10 h-10 rounded-full bg-red-500/30 animate-ping" />
+
+              {/* Pin Icon */}
+              <div className="relative z-10 w-11 h-11 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl border-2 border-white group-hover/pin:scale-110 transition-transform duration-300">
+                <FaMapMarkerAlt className="w-6 h-6 text-white" />
+              </div>
+
+              {/* Tooltip displaying school name on hover */}
+              <div className="opacity-0 group-hover/pin:opacity-100 transition-all duration-300 transform translate-y-2 group-hover/pin:translate-y-0 mt-2.5 bg-slate-900/95 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl shadow-2xl backdrop-blur-md border border-slate-700/50 flex items-center gap-2 whitespace-nowrap pointer-events-none">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span>Abhilasha Academy (Maa Durga Abhilasha Inter College)</span>
+              </div>
+            </div>
+          </a>
         </AnimatedSection>
       </div>
 

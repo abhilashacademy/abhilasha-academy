@@ -78,7 +78,7 @@ export const contactDetails = {
   director: "Hari Shankar Pandey",
   directorQualifications: "M.A. (Hindi, English, Education), B.Ed.",
   directorPhone: "+91 99567 89374",
-  googleMapsLink: "https://maps.google.com/?q=Abhilasha+Academy+Gaura+Kaptanganj+Basti",
+  googleMapsLink: "https://maps.app.goo.gl/ry1YARu1Jww9yzeM8?g_st=ic",
   timings: "Mon - Sat: 9:00 AM - 4:00 PM",
 };
 
